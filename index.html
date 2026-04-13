@@ -3,61 +3,76 @@
 <head>
   <title>SPMS Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <style>
-    body { font-family: Arial; margin:20px; }
-    h2 { margin-bottom:10px; }
+    body {
+      margin:0;
+      font-family: Arial;
+      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+      color: white;
+    }
+
+    h2 {
+      text-align:center;
+      margin:10px;
+    }
 
     .cards {
-      display:flex;
+      display:grid;
+      grid-template-columns: repeat(4, 1fr);
       gap:10px;
-      margin-bottom:20px;
+      padding:10px;
     }
 
     .card {
-      flex:1;
-      padding:15px;
-      background:#f4f4f4;
+      background: rgba(255,255,255,0.1);
+      padding:10px;
       border-radius:8px;
       text-align:center;
+      font-size:14px;
+    }
+
+    .card span {
+      display:block;
+      font-size:20px;
       font-weight:bold;
     }
 
     .grid {
       display:grid;
       grid-template-columns: 2fr 1fr;
-      gap:20px;
+      gap:10px;
+      padding:10px;
     }
 
     canvas {
-      background:#fff;
-      border-radius:10px;
-      padding:10px;
+      background: rgba(255,255,255,0.05);
+      border-radius:8px;
+      padding:5px;
     }
+
   </style>
 </head>
 <body>
 
-<h2>SPMS Dashboard (Q1)</h2>
+<h2>Q1 SPMS DASHBOARD</h2>
 
-<!-- 🔥 KPI CARDS -->
+<!-- 🔥 KPI -->
 <div class="cards">
-  <div class="card" id="total">Total: 0</div>
-  <div class="card" id="reported">Reported: 0</div>
-  <div class="card" id="notReported">Not Reported: 0</div>
-  <div class="card" id="completion">Completion: 0%</div>
+  <div class="card">Total<span id="total"></span></div>
+  <div class="card">Reported<span id="reported"></span></div>
+  <div class="card">Not Reported<span id="notReported"></span></div>
+  <div class="card">Completion<span id="completion"></span></div>
 </div>
 
 <div class="grid">
 
-  <!-- 🔥 TOP 10 PERFORMANCE -->
-  <canvas id="performanceChart"></canvas>
+  <!-- 🔥 TOP PERFORMANCE -->
+  <canvas id="performanceChart" height="250"></canvas>
 
   <div>
-    <!-- 🔥 CATEGORY -->
-    <canvas id="categoryChart"></canvas>
-
-    <!-- 🔥 STATUS -->
-    <canvas id="statusChart"></canvas>
+    <canvas id="categoryChart" height="120"></canvas>
+    <canvas id="statusChart" height="120"></canvas>
   </div>
 
 </div>
@@ -74,10 +89,7 @@ fetch(url)
   let labels = [];
   let values = [];
 
-  let total = 0;
-  let reported = 0;
-  let notReported = 0;
-
+  let total = 0, reported = 0, notReported = 0;
   let categoryMap = {};
 
   rows.forEach(row => {
@@ -94,93 +106,66 @@ fetch(url)
     if (quarter === "Q1") {
 
       total++;
-
       labels.push(indicator);
       values.push(performance);
 
-      if (status === "Reported") {
-        reported++;
-      } else {
-        notReported++;
-      }
+      if (status === "Reported") reported++;
+      else notReported++;
 
-      if (!categoryMap[category]) {
-        categoryMap[category] = [];
-      }
+      if (!categoryMap[category]) categoryMap[category] = [];
       categoryMap[category].push(performance);
     }
 
   });
 
-  // 🔥 TOP 10 FILTER
-  let combined = labels.map((label, i) => ({
-    label: label,
-    value: values[i]
-  }));
+  // 🔥 TOP 8 LANG para kasya
+  let combined = labels.map((l,i)=>({l,v:values[i]}));
+  combined.sort((a,b)=>b.v-a.v);
+  combined = combined.slice(0,8);
 
-  combined.sort((a, b) => b.value - a.value);
-  combined = combined.slice(0, 10);
+  labels = combined.map(x=>x.l);
+  values = combined.map(x=>x.v);
 
-  labels = combined.map(x => x.label);
-  values = combined.map(x => x.value);
+  // KPI
+  document.getElementById("total").innerText = total;
+  document.getElementById("reported").innerText = reported;
+  document.getElementById("notReported").innerText = notReported;
+  document.getElementById("completion").innerText = ((reported/total)*100).toFixed(1)+"%";
 
-  // 🔥 KPI
-  const completionRate = total > 0 ? ((reported / total) * 100).toFixed(1) : 0;
-
-  document.getElementById("total").innerText = "Total: " + total;
-  document.getElementById("reported").innerText = "Reported: " + reported;
-  document.getElementById("notReported").innerText = "Not Reported: " + notReported;
-  document.getElementById("completion").innerText = "Completion: " + completionRate + "%";
-
-  // 🔥 PERFORMANCE CHART (TOP 10)
+  // 🔥 PERFORMANCE
   new Chart(document.getElementById("performanceChart"), {
     type: "bar",
     data: {
       labels: labels,
-      datasets: [{
-        label: "Top 10 Performance %",
-        data: values
-      }]
+      datasets: [{ data: values }]
     },
     options: {
-      indexAxis: 'y',
-      responsive: true,
-      scales: {
-        x: { beginAtZero: true }
-      }
+      indexAxis:'y',
+      plugins:{ legend:{display:false}},
+      scales:{ x:{beginAtZero:true}}
     }
   });
 
-  // 🔥 CATEGORY CHART
-  let catLabels = [];
-  let catValues = [];
-
-  for (let cat in categoryMap) {
-    const arr = categoryMap[cat];
-    const avg = arr.reduce((a,b)=>a+b,0) / arr.length;
-    catLabels.push(cat);
-    catValues.push(avg.toFixed(2));
+  // 🔥 CATEGORY
+  let catL=[], catV=[];
+  for (let c in categoryMap){
+    let avg = categoryMap[c].reduce((a,b)=>a+b,0)/categoryMap[c].length;
+    catL.push(c);
+    catV.push(avg.toFixed(1));
   }
 
   new Chart(document.getElementById("categoryChart"), {
     type: "bar",
-    data: {
-      labels: catLabels,
-      datasets: [{
-        label: "Category Avg",
-        data: catValues
-      }]
-    }
+    data: { labels: catL, datasets:[{data:catV}] },
+    options:{ plugins:{legend:{display:false}} }
   });
 
-  // 🔥 STATUS CHART
+  // 🔥 STATUS
   new Chart(document.getElementById("statusChart"), {
     type: "pie",
     data: {
-      labels: ["Reported", "Not Reported"],
-      datasets: [{
-        data: [reported, notReported]
-      }]
+      labels:["Reported","Not"],
+      datasets:[{data:[reported,notReported]}]
     }
   });
 
