@@ -6,7 +6,7 @@
 </head>
 <body>
 
-<h2>SPMS Dashboard (Q1 All Data)</h2>
+<h2>SPMS Dashboard (Q1 All Indicators)</h2>
 
 <canvas id="chart" width="900" height="400"></canvas>
 
@@ -26,17 +26,18 @@ fetch(url)
 
       const cols = row.split("\t");
 
-      if (cols.length < 10) return;
+      if (cols.length < 5) return;
 
       const indicator = cols[1];
       const performance = parseFloat(cols[3]) || 0;
 
-      const quarter = cols[4]?.trim();
-      const status = cols[7]?.trim();
+      const quarter = cols[4]
+        ?.replace(/\r/g, "")
+        .trim()
+        .toUpperCase();
 
-      console.log("Q:", quarter, "| Status:", status, "| Perf:", performance);
+      console.log("Quarter:", quarter); // debug
 
-      // 🔥 FINAL FILTER
       if (quarter === "Q1") {
         labels.push(indicator);
         values.push(performance);
@@ -54,14 +55,6 @@ fetch(url)
           label: "Performance %",
           data: values
         }]
-      },
-      options: {
-        responsive: true,
-        scales: {
-          y: {
-            beginAtZero: true
-          }
-        }
       }
     });
 
