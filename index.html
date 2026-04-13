@@ -6,50 +6,59 @@
 
   <style>
     body {
-      margin:0;
-      font-family: Arial;
-      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
-      color: white;
-    }
+  margin:0;
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+  color:white;
+}
 
-    h2 {
-      text-align:center;
-      margin:10px;
-    }
+/* TITLE */
+h2 {
+  text-align:center;
+  margin:15px;
+  font-weight:600;
+  letter-spacing:1px;
+}
 
-    .cards {
-      display:grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap:10px;
-      padding:10px;
-    }
+/* KPI CARDS */
+.cards {
+  display:grid;
+  grid-template-columns: repeat(4,1fr);
+  gap:10px;
+  padding:10px;
+}
 
-    .card {
-      background: rgba(255,255,255,0.1);
-      padding:10px;
-      border-radius:8px;
-      text-align:center;
-      font-size:14px;
-    }
+.card {
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(8px);
+  border-radius:10px;
+  padding:12px;
+  text-align:center;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+}
 
-    .card span {
-      display:block;
-      font-size:20px;
-      font-weight:bold;
-    }
+.card span {
+  display:block;
+  font-size:22px;
+  font-weight:bold;
+  margin-top:5px;
+}
 
-    .grid {
-      display:grid;
-      grid-template-columns: 2fr 1fr;
-      gap:10px;
-      padding:10px;
-    }
+/* GRID */
+.grid {
+  display:grid;
+  grid-template-columns: 2fr 1fr;
+  gap:10px;
+  padding:10px;
+}
 
-    canvas {
-      background: rgba(255,255,255,0.05);
-      border-radius:8px;
-      padding:5px;
-    }
+/* CHART BOX */
+canvas {
+  background: rgba(255,255,255,0.05);
+  border-radius:10px;
+  padding:10px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.3);
+}
 
   </style>
 </head>
