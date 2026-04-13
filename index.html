@@ -3,56 +3,151 @@
 <head>
   <title>SPMS Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Arial; padding:20px; }
+    .cards { display:flex; gap:20px; margin-bottom:20px; }
+    .card {
+      padding:20px;
+      border-radius:10px;
+      background:#f4f4f4;
+      flex:1;
+      text-align:center;
+      font-size:18px;
+    }
+    canvas { margin-top:30px; }
+  </style>
 </head>
 <body>
 
-<h2>SPMS Dashboard (Q1 All Indicators)</h2>
+<h2>SPMS Dashboard (Q1)</h2>
 
-<canvas id="chart" width="900" height="400"></canvas>
+<!-- 🔥 KPI CARDS -->
+<div class="cards">
+  <div class="card" id="total">Total: 0</div>
+  <div class="card" id="reported">Reported: 0</div>
+  <div class="card" id="notReported">Not Reported: 0</div>
+  <div class="card" id="completion">Completion: 0%</div>
+</div>
+
+<!-- 🔥 CHARTS -->
+<canvas id="performanceChart"></canvas>
+<canvas id="categoryChart"></canvas>
+<canvas id="statusChart"></canvas>
 
 <script>
 const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQtsHSDvB8iC3RSfJRmKf3MOkVb3LKkZ98aTxik3vDeOINaEFQW-4l_vTetjU05LszMK7cytmBq-i6n/pub?gid=959972291&single=true&output=tsv";
 
 fetch(url)
-  .then(res => res.text())
-  .then(data => {
+.then(res => res.text())
+.then(data => {
 
-    const rows = data.split("\n").slice(1);
+  const rows = data.split("\n");
+  const headers = rows[0].split("\t");
 
-    let labels = [];
-    let values = [];
+  const indicatorIndex = 2;
+  const performanceIndex = 4;
+  const quarterIndex = 5;
+  const categoryIndex = 1;
+  const statusIndex = 8;
 
-    rows.forEach(row => {
+  let labels = [];
+  let values = [];
 
-      const cols = row.split("\t");
+  let total = 0;
+  let reported = 0;
+  let notReported = 0;
 
-      if (cols.length < 6) return;
+  let categoryMap = {};
 
-      const indicator = cols[2]; // ✅ FIXED
-      const performance = parseFloat(cols[4]) || 0; // ✅ FIXED
-      const quarter = cols[5]?.trim(); // ✅ FIXED
+  rows.slice(1).forEach(row => {
 
-      if (quarter === "Q1") {
-        labels.push(indicator);
-        values.push(performance);
+    const cols = row.split("\t");
+    if (cols.length < 9) return;
+
+    const indicator = cols[indicatorIndex];
+    const performance = parseFloat(cols[performanceIndex]) || 0;
+    const quarter = cols[quarterIndex]?.trim();
+    const category = cols[categoryIndex];
+    const status = cols[statusIndex]?.trim();
+
+    if (quarter === "Q1") {
+
+      total++;
+
+      // performance chart
+      labels.push(indicator);
+      values.push(performance);
+
+      // status count
+      if (status === "Reported") {
+        reported++;
+      } else {
+        notReported++;
       }
 
-    });
-
-    console.log("FINAL:", labels, values);
-
-    new Chart(document.getElementById("chart"), {
-      type: "bar",
-      data: {
-        labels: labels,
-        datasets: [{
-          label: "Performance %",
-          data: values
-        }]
+      // category summary
+      if (!categoryMap[category]) {
+        categoryMap[category] = [];
       }
-    });
+      categoryMap[category].push(performance);
+    }
 
   });
+
+  // 🔥 KPI COMPUTATION
+  const completionRate = total > 0 ? ((reported / total) * 100).toFixed(1) : 0;
+
+  document.getElementById("total").innerText = "Total: " + total;
+  document.getElementById("reported").innerText = "Reported: " + reported;
+  document.getElementById("notReported").innerText = "Not Reported: " + notReported;
+  document.getElementById("completion").innerText = "Completion: " + completionRate + "%";
+
+  // 🔥 CHART 1: PERFORMANCE
+  new Chart(document.getElementById("performanceChart"), {
+    type: "bar",
+    data: {
+      labels: labels,
+      datasets: [{
+        label: "Performance %",
+        data: values
+      }]
+    }
+  });
+
+  // 🔥 CHART 2: CATEGORY AVG
+  let catLabels = [];
+  let catValues = [];
+
+  for (let cat in categoryMap) {
+    const arr = categoryMap[cat];
+    const avg = arr.reduce((a,b)=>a+b,0) / arr.length;
+    catLabels.push(cat);
+    catValues.push(avg.toFixed(2));
+  }
+
+  new Chart(document.getElementById("categoryChart"), {
+    type: "bar",
+    data: {
+      labels: catLabels,
+      datasets: [{
+        label: "Average Performance",
+        data: catValues
+      }]
+    }
+  });
+
+  // 🔥 CHART 3: STATUS
+  new Chart(document.getElementById("statusChart"), {
+    type: "pie",
+    data: {
+      labels: ["Reported", "Not Reported"],
+      datasets: [{
+        data: [reported, notReported]
+      }]
+    }
+  });
+
+});
 </script>
 
 </body>
