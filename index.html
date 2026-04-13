@@ -1,10 +1,68 @@
-<script>
-const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQtsHSDvB8iC3RSfJRmKf3MOkVb3LKkZ98aTxik3vDeOINaEFQW-4l_vTetjU05LszMK7cytmBq-i6n/pub?gid=959972291&single=true&output=csv";
+<!DOCTYPE html>
+<html>
+<head>
+  <title>SPMS Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
 
-fetch(csvUrl)
+<h2>SPMS Dashboard (Q1 Performance)</h2>
+
+<canvas id="chart" width="800" height="400"></canvas>
+
+<script>
+const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQtsHSDvB8iC3RSfJRmKf3MOkVb3LKkZ98aTxik3vDeOINaEFQW-4l_vTetjU05LszMK7cytmBq-i6n/pub?gid=959972291&single=true&output=tsv";
+
+fetch(url)
   .then(res => res.text())
   .then(data => {
-    console.log(data);
-    alert("Check console (F12)");
+
+    const rows = data.split("\n").slice(1);
+
+    let labels = [];
+    let values = [];
+
+    rows.forEach(row => {
+
+      const cols = row.split("\t");
+
+      if (cols.length < 8) return;
+
+      const indicator = cols[1];
+      const performance = parseFloat(cols[3]);
+
+      const quarter = cols[4]?.replace(/\r/g, "").trim();
+      const status = cols[7]?.replace(/\r/g, "").trim().toLowerCase();
+
+      // 🔥 DEBUG
+      console.log("Q:", quarter, "| S:", status, "| P:", performance);
+
+      if (
+        quarter === "Q1" &&
+        status === "reported" &&
+        !isNaN(performance)
+      ) {
+        labels.push(indicator);
+        values.push(performance);
+      }
+
+    });
+
+    console.log("FINAL:", labels, values);
+
+    new Chart(document.getElementById("chart"), {
+      type: "bar",
+      data: {
+        labels: labels,
+        datasets: [{
+          label: "Performance %",
+          data: values
+        }]
+      }
+    });
+
   });
 </script>
+
+</body>
+</html>
