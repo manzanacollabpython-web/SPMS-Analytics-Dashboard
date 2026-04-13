@@ -1,24 +1,25 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>SPMS FINAL DASHBOARD</title>
+  <title>SPMS Pro Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
     body {
       margin:0;
-      font-family:'Segoe UI', sans-serif;
-      background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+      font-family:'Segoe UI';
+      background: radial-gradient(circle,#1f3b4d,#0f2027);
       color:white;
     }
 
-    h2 {
+    h1 {
       text-align:center;
-      padding:10px;
+      padding:15px;
       letter-spacing:2px;
     }
 
-    .cards {
+    /* KPI */
+    .kpi {
       display:grid;
       grid-template-columns: repeat(5,1fr);
       gap:10px;
@@ -26,20 +27,24 @@
     }
 
     .card {
-      padding:12px;
-      border-radius:10px;
+      padding:15px;
+      border-radius:12px;
       text-align:center;
-      background: rgba(255,255,255,0.08);
       backdrop-filter: blur(10px);
-      box-shadow:0 0 15px rgba(0,0,0,0.4);
+      background: rgba(255,255,255,0.05);
+      box-shadow:0 0 20px rgba(0,0,0,0.5);
     }
 
     .green { background: linear-gradient(135deg,#1f4037,#99f2c8); }
     .yellow { background: linear-gradient(135deg,#f7971e,#ffd200); }
     .red { background: linear-gradient(135deg,#cb2d3e,#ef473a); }
 
-    .card span { font-size:22px; font-weight:bold; }
+    .card span {
+      font-size:28px;
+      font-weight:bold;
+    }
 
+    /* GRID */
     .grid {
       display:grid;
       grid-template-columns: 2fr 1fr;
@@ -53,18 +58,16 @@
       padding:10px;
     }
 
-    /* 🔥 TABLE */
+    /* TABLE */
     table {
       width:100%;
       border-collapse:collapse;
+      margin-top:10px;
       font-size:12px;
-      background: rgba(255,255,255,0.05);
-      border-radius:10px;
-      overflow:hidden;
     }
 
     th, td {
-      padding:6px;
+      padding:8px;
       text-align:center;
     }
 
@@ -72,156 +75,96 @@
       background: rgba(255,255,255,0.1);
     }
 
-    tr:nth-child(even){
-      background: rgba(255,255,255,0.05);
-    }
-
     .rank {
-      font-weight:bold;
+      padding:5px 10px;
       border-radius:50%;
-      padding:5px;
-      display:inline-block;
-      width:20px;
+      font-weight:bold;
     }
 
-    .r1{background:#2ecc71;}
-    .r2{background:#f1c40f;}
-    .r3{background:#e67e22;}
-    .r4,.r5,.r6{background:#e74c3c;}
+    .r1 { background:#2ecc71; }
+    .r2 { background:#f1c40f; }
+    .r3 { background:#e67e22; }
 
   </style>
 </head>
 
 <body>
 
-<h2>Q1 COMPLIANCE DASHBOARD</h2>
+<h1>Q1 COMPLIANCE DASHBOARD</h1>
 
-<div class="cards">
-  <div class="card"><span id="total"></span><br>Total KPI</div>
-  <div class="card green"><span id="reported"></span><br>On-Time</div>
-  <div class="card yellow"><span id="late"></span><br>Late</div>
-  <div class="card red"><span id="notReported"></span><br>Not Submitted</div>
-  <div class="card"><span id="completion"></span><br>Completion</div>
+<div class="kpi">
+  <div class="card"><span id="kpi1">48%</span><br>Performance</div>
+  <div class="card green"><span id="kpi2">42%</span><br>Compliance</div>
+  <div class="card"><span id="kpi3">35%</span><br>On-Time</div>
+  <div class="card yellow"><span id="kpi4">7%</span><br>Late</div>
+  <div class="card red"><span id="kpi5">57%</span><br>Not Submitted</div>
 </div>
 
 <div class="grid">
 
-  <canvas id="performanceChart"></canvas>
+  <canvas id="chart1"></canvas>
 
   <div>
-    <canvas id="categoryChart"></canvas>
-    <canvas id="statusChart"></canvas>
+    <canvas id="chart2"></canvas>
+    <canvas id="chart3"></canvas>
   </div>
 
 </div>
 
 <div style="padding:10px">
-  <h3>Submission Ranking</h3>
-  <table id="ranking">
-    <thead>
-      <tr>
-        <th>Indicator</th>
-        <th>Performance</th>
-        <th>Rank</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
+  <table>
+    <tr>
+      <th>Department</th>
+      <th>Performance</th>
+      <th>Rank</th>
+    </tr>
+
+    <tr>
+      <td>ER</td>
+      <td>98.89%</td>
+      <td><span class="rank r1">1</span></td>
+    </tr>
+
+    <tr>
+      <td>PETRU</td>
+      <td>42%</td>
+      <td><span class="rank r2">2</span></td>
+    </tr>
+
+    <tr>
+      <td>BILLING</td>
+      <td>100%</td>
+      <td><span class="rank r3">3</span></td>
+    </tr>
+
   </table>
 </div>
 
 <script>
-const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQtsHSDvB8iC3RSfJRmKf3MOkVb3LKkZ98aTxik3vDeOINaEFQW-4l_vTetjU05LszMK7cytmBq-i6n/pub?gid=959972291&single=true&output=tsv";
+// 🔥 SAMPLE DATA
+const labels = ["ER","Billing","IPCU","Lab","Nursing"];
+const values = [98,100,100,99,95];
 
-fetch(url)
-.then(res=>res.text())
-.then(data=>{
+new Chart(chart1,{
+  type:'bar',
+  data:{labels:labels,datasets:[{data:values}]},
+  options:{indexAxis:'y'}
+});
 
-  const rows=data.split("\n").slice(1);
-
-  let arr=[];
-  let total=0,reported=0,notReported=0,late=0;
-  let categoryMap={};
-
-  rows.forEach(r=>{
-    let c=r.split("\t");
-    if(c.length<9)return;
-
-    let perf=parseFloat(c[4])||0;
-    let q=c[5];
-    let status=c[8];
-    let cat=c[1];
-
-    if(q==="Q1"){
-      total++;
-
-      arr.push({label:c[2],value:perf});
-
-      if(status==="Reported") reported++;
-      else notReported++;
-
-      if(perf<100 && perf>0) late++;
-
-      if(!categoryMap[cat]) categoryMap[cat]=[];
-      categoryMap[cat].push(perf);
-    }
-  });
-
-  arr.sort((a,b)=>b.value-a.value);
-
-  let top=arr.slice(0,8);
-
-  document.getElementById("total").innerText=total;
-  document.getElementById("reported").innerText=reported;
-  document.getElementById("notReported").innerText=notReported;
-  document.getElementById("late").innerText=late;
-  document.getElementById("completion").innerText=((reported/total)*100).toFixed(1)+"%";
-
-  // 🔥 CHART
-  new Chart(document.getElementById("performanceChart"),{
-    type:"bar",
-    data:{
-      labels:top.map(x=>x.label),
-      datasets:[{data:top.map(x=>x.value)}]
-    },
-    options:{indexAxis:'y',plugins:{legend:{display:false}}}
-  });
-
-  // CATEGORY
-  let cl=[],cv=[];
-  for(let c in categoryMap){
-    let avg=categoryMap[c].reduce((a,b)=>a+b,0)/categoryMap[c].length;
-    cl.push(c); cv.push(avg.toFixed(1));
+new Chart(chart2,{
+  type:'pie',
+  data:{
+    labels:["Strategic","Core","Support"],
+    datasets:[{data:[30,50,20]}]
   }
+});
 
-  new Chart(document.getElementById("categoryChart"),{
-    type:"pie",
-    data:{labels:cl,datasets:[{data:cv}]}
-  });
-
-  new Chart(document.getElementById("statusChart"),{
-    type:"pie",
-    data:{
-      labels:["Reported","Not"],
-      datasets:[{data:[reported,notReported]}]
-    }
-  });
-
-  // 🔥 RANKING TABLE
-  let tbody=document.querySelector("#ranking tbody");
-
-  arr.slice(0,6).forEach((x,i)=>{
-    let rank=i+1;
-    let cls="r"+rank;
-
-    tbody.innerHTML+=`
-      <tr>
-        <td>${x.label}</td>
-        <td>${x.value}%</td>
-        <td><span class="rank ${cls}">${rank}</span></td>
-      </tr>
-    `;
-  });
-
+new Chart(chart3,{
+  type:'pie',
+  data:{
+    labels:["On-Time","Late","Not"],
+    datasets:[{data:[60,10,30]}]
+  }
 });
 </script>
 
