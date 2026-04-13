@@ -6,7 +6,7 @@
 </head>
 <body>
 
-<h2>SPMS Dashboard (Q1 All Data)</h2>
+<h2>SPMS Dashboard (Q1 All Indicators)</h2>
 
 <canvas id="chart" width="900" height="400"></canvas>
 
@@ -17,32 +17,20 @@ fetch(url)
   .then(res => res.text())
   .then(data => {
 
-    const rows = data.split("\n");
-
-    // 🔥 HEADER (important)
-    const headers = rows[0].split("\t");
-
-    console.log("HEADERS:", headers);
-
-    // 🔥 AUTO FIND COLUMN INDEX
-    const indicatorIndex = headers.indexOf("INDICATOR");
-    const performanceIndex = headers.indexOf("PERFORMANCE RATE");
-    const quarterIndex = headers.indexOf("QUARTER");
-
-    console.log("INDEX:", indicatorIndex, performanceIndex, quarterIndex);
+    const rows = data.split("\n").slice(1);
 
     let labels = [];
     let values = [];
 
-    rows.slice(1).forEach(row => {
+    rows.forEach(row => {
 
       const cols = row.split("\t");
 
-      if (cols.length < headers.length) return;
+      if (cols.length < 6) return;
 
-      const indicator = cols[indicatorIndex];
-      const performance = parseFloat(cols[performanceIndex]) || 0;
-      const quarter = cols[quarterIndex]?.trim();
+      const indicator = cols[2]; // ✅ FIXED
+      const performance = parseFloat(cols[4]) || 0; // ✅ FIXED
+      const quarter = cols[5]?.trim(); // ✅ FIXED
 
       if (quarter === "Q1") {
         labels.push(indicator);
