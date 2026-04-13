@@ -6,9 +6,9 @@
 </head>
 <body>
 
-<h2>SPMS Dashboard (Q1 Performance)</h2>
+<h2>SPMS Dashboard (Q1 - All Indicators)</h2>
 
-<canvas id="chart" width="800" height="400"></canvas>
+<canvas id="chart" width="900" height="400"></canvas>
 
 <script>
 const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQtsHSDvB8iC3RSfJRmKf3MOkVb3LKkZ98aTxik3vDeOINaEFQW-4l_vTetjU05LszMK7cytmBq-i6n/pub?gid=959972291&single=true&output=tsv";
@@ -26,29 +26,21 @@ fetch(url)
 
       const cols = row.split("\t");
 
-      if (cols.length < 8) return;
+      if (cols.length < 5) return;
 
       const indicator = cols[1];
-      const performance = parseFloat(cols[3]);
-
+      const performance = parseFloat(cols[3]) || 0;
       const quarter = cols[4]?.replace(/\r/g, "").trim();
-      const status = cols[7]?.replace(/\r/g, "").trim().toLowerCase();
 
-      // 🔥 DEBUG
-      console.log("Q:", quarter, "| S:", status, "| P:", performance);
-
-      if (
-        quarter === "Q1" &&
-        status === "reported" &&
-        !isNaN(performance)
-      ) {
+      // 🔥 FILTER: Q1 LANG (lahat kasama)
+      if (quarter === "Q1") {
         labels.push(indicator);
         values.push(performance);
       }
 
     });
 
-    console.log("FINAL:", labels, values);
+    console.log("ALL Q1 DATA:", labels, values);
 
     new Chart(document.getElementById("chart"), {
       type: "bar",
@@ -58,6 +50,14 @@ fetch(url)
           label: "Performance %",
           data: values
         }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
       }
     });
 
