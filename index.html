@@ -6,77 +6,102 @@
 
   <style>
     body {
-  margin:0;
-  font-family: 'Segoe UI', sans-serif;
-  background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-  color:white;
-}
+      margin:0;
+      font-family:'Segoe UI', sans-serif;
+      background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+      color:white;
+    }
 
-/* TITLE */
-h2 {
-  text-align:center;
-  margin:15px;
-  font-weight:600;
-  letter-spacing:1px;
-}
+    h2 {
+      text-align:center;
+      padding:10px;
+      letter-spacing:2px;
+    }
 
-/* KPI CARDS */
-.cards {
-  display:grid;
-  grid-template-columns: repeat(4,1fr);
-  gap:10px;
-  padding:10px;
-}
+    /* KPI GRID */
+    .cards {
+      display:grid;
+      grid-template-columns: repeat(5,1fr);
+      gap:10px;
+      padding:10px;
+    }
 
-.card {
-  background: rgba(255,255,255,0.08);
-  backdrop-filter: blur(8px);
-  border-radius:10px;
-  padding:12px;
-  text-align:center;
-  box-shadow: 0 0 10px rgba(0,0,0,0.3);
-}
+    .card {
+      padding:12px;
+      border-radius:10px;
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(10px);
+      text-align:center;
+      box-shadow:0 0 15px rgba(0,0,0,0.4);
+    }
 
-.card span {
-  display:block;
-  font-size:22px;
-  font-weight:bold;
-  margin-top:5px;
-}
+    .card h3 {
+      font-size:12px;
+      margin:0;
+      opacity:0.8;
+    }
 
-/* GRID */
-.grid {
-  display:grid;
-  grid-template-columns: 2fr 1fr;
-  gap:10px;
-  padding:10px;
-}
+    .card span {
+      font-size:22px;
+      font-weight:bold;
+    }
 
-/* CHART BOX */
-canvas {
-  background: rgba(255,255,255,0.05);
-  border-radius:10px;
-  padding:10px;
-  box-shadow: 0 0 15px rgba(0,0,0,0.3);
-}
+    .green { background: linear-gradient(135deg,#1f4037,#99f2c8); }
+    .yellow { background: linear-gradient(135deg,#f7971e,#ffd200); }
+    .red { background: linear-gradient(135deg,#cb2d3e,#ef473a); }
+
+    /* GRID */
+    .grid {
+      display:grid;
+      grid-template-columns: 2fr 1fr;
+      gap:10px;
+      padding:10px;
+    }
+
+    canvas {
+      background: rgba(255,255,255,0.05);
+      border-radius:10px;
+      padding:10px;
+    }
 
   </style>
 </head>
+
 <body>
 
-<h2>Q1 SPMS DASHBOARD</h2>
+<h2>Q1 COMPLIANCE DASHBOARD</h2>
 
 <!-- 🔥 KPI -->
 <div class="cards">
-  <div class="card">Total<span id="total"></span></div>
-  <div class="card">Reported<span id="reported"></span></div>
-  <div class="card">Not Reported<span id="notReported"></span></div>
-  <div class="card">Completion<span id="completion"></span></div>
+  <div class="card">
+    <h3>Total KPI</h3>
+    <span id="total"></span>
+  </div>
+
+  <div class="card green">
+    <h3>On-Time</h3>
+    <span id="reported"></span>
+  </div>
+
+  <div class="card yellow">
+    <h3>Late</h3>
+    <span id="late"></span>
+  </div>
+
+  <div class="card red">
+    <h3>Not Submitted</h3>
+    <span id="notReported"></span>
+  </div>
+
+  <div class="card">
+    <h3>Completion</h3>
+    <span id="completion"></span>
+  </div>
 </div>
 
 <div class="grid">
 
-  <!-- 🔥 TOP PERFORMANCE -->
+  <!-- PERFORMANCE -->
   <canvas id="performanceChart" height="250"></canvas>
 
   <div>
@@ -90,89 +115,80 @@ canvas {
 const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQtsHSDvB8iC3RSfJRmKf3MOkVb3LKkZ98aTxik3vDeOINaEFQW-4l_vTetjU05LszMK7cytmBq-i6n/pub?gid=959972291&single=true&output=tsv";
 
 fetch(url)
-.then(res => res.text())
-.then(data => {
+.then(res=>res.text())
+.then(data=>{
 
   const rows = data.split("\n").slice(1);
 
-  let labels = [];
-  let values = [];
+  let labels=[], values=[];
+  let total=0, reported=0, notReported=0, late=0;
 
-  let total = 0, reported = 0, notReported = 0;
-  let categoryMap = {};
+  let categoryMap={};
 
-  rows.forEach(row => {
+  rows.forEach(row=>{
+    const c=row.split("\t");
+    if(c.length<9)return;
 
-    const cols = row.split("\t");
-    if (cols.length < 9) return;
+    let perf=parseFloat(c[4])||0;
+    let q=c[5]?.trim();
+    let cat=c[1];
+    let status=c[8];
 
-    const indicator = cols[2];
-    const performance = parseFloat(cols[4]) || 0;
-    const quarter = cols[5]?.trim();
-    const category = cols[1];
-    const status = cols[8]?.trim();
-
-    if (quarter === "Q1") {
-
+    if(q==="Q1"){
       total++;
-      labels.push(indicator);
-      values.push(performance);
+      labels.push(c[2]);
+      values.push(perf);
 
-      if (status === "Reported") reported++;
+      if(status==="Reported") reported++;
       else notReported++;
 
-      if (!categoryMap[category]) categoryMap[category] = [];
-      categoryMap[category].push(performance);
-    }
+      // fake late logic (pwede mo palitan later)
+      if(perf<100 && perf>0) late++;
 
+      if(!categoryMap[cat]) categoryMap[cat]=[];
+      categoryMap[cat].push(perf);
+    }
   });
 
-  // 🔥 TOP 8 LANG para kasya
-  let combined = labels.map((l,i)=>({l,v:values[i]}));
-  combined.sort((a,b)=>b.v-a.v);
-  combined = combined.slice(0,8);
+  // TOP 8
+  let comb=labels.map((l,i)=>({l,v:values[i]}));
+  comb.sort((a,b)=>b.v-a.v);
+  comb=comb.slice(0,8);
 
-  labels = combined.map(x=>x.l);
-  values = combined.map(x=>x.v);
+  labels=comb.map(x=>x.l);
+  values=comb.map(x=>x.v);
 
   // KPI
-  document.getElementById("total").innerText = total;
-  document.getElementById("reported").innerText = reported;
-  document.getElementById("notReported").innerText = notReported;
-  document.getElementById("completion").innerText = ((reported/total)*100).toFixed(1)+"%";
+  document.getElementById("total").innerText=total;
+  document.getElementById("reported").innerText=reported;
+  document.getElementById("notReported").innerText=notReported;
+  document.getElementById("late").innerText=late;
+  document.getElementById("completion").innerText=((reported/total)*100).toFixed(1)+"%";
 
-  // 🔥 PERFORMANCE
-  new Chart(document.getElementById("performanceChart"), {
-    type: "bar",
-    data: {
-      labels: labels,
-      datasets: [{ data: values }]
-    },
-    options: {
-      indexAxis:'y',
-      plugins:{ legend:{display:false}},
-      scales:{ x:{beginAtZero:true}}
-    }
+  // CHART
+  new Chart(document.getElementById("performanceChart"),{
+    type:"bar",
+    data:{labels:labels,datasets:[{data:values}]},
+    options:{indexAxis:'y',plugins:{legend:{display:false}}}
   });
 
-  // 🔥 CATEGORY
-  let catL=[], catV=[];
-  for (let c in categoryMap){
-    let avg = categoryMap[c].reduce((a,b)=>a+b,0)/categoryMap[c].length;
-    catL.push(c);
-    catV.push(avg.toFixed(1));
+  // CATEGORY
+  let cl=[],cv=[];
+  for(let c in categoryMap){
+    let avg=categoryMap[c].reduce((a,b)=>a+b,0)/categoryMap[c].length;
+    cl.push(c); cv.push(avg.toFixed(1));
   }
 
-  new Chart(document.getElementById("categoryChart"), {
-    type: "bar",
-    data: { labels: catL, datasets:[{data:catV}] },
-    options:{ plugins:{legend:{display:false}} }
+  new Chart(document.getElementById("categoryChart"),{
+    type:"bar",
+    data:{labels:cl,datasets:[{data:cv}]},
+    options:{plugins:{legend:{display:false}}}
   });
 
-  // 🔥 STATUS
-  new Chart(document.getElementById("statusChart"), {
-    type: "pie",
-    data: {
+  // STATUS PIE
+  new Chart(document.getElementById("statusChart"),{
+    type:"pie",
+    data:{
       labels:["Reported","Not"],
       datasets:[{data:[reported,notReported]}]
     }
