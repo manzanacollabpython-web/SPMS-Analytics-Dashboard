@@ -66,7 +66,8 @@
                     <span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
                     Accomplishment Rate per Office (%)
                 </h3>
-                <div class="relative" style="height:260px"> <canvas id="barChart"></canvas>
+                <div class="relative" style="height:260px">
+                    <canvas id="barChart"></canvas>
                 </div>
             </div>
 
@@ -75,7 +76,8 @@
                     <span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
                     Submission Overview
                 </h3>
-                <div class="max-w-[200px] mx-auto mt-2"> <canvas id="pieChart"></canvas>
+                <div class="max-w-[200px] mx-auto mt-2">
+                    <canvas id="pieChart"></canvas>
                 </div>
             </div>
         </div>
@@ -95,7 +97,7 @@
                         </tr>
                     </thead>
                     <tbody id="ranking-body">
-                        </tbody>
+                    </tbody>
                 </table>
             </div>
         </div>
@@ -103,9 +105,14 @@
     </div>
 
     <script>
-        Chart.register(ChartDataLabels);
+        // Try-Catch para saluhin kung may error
+        try {
+            Chart.register(ChartDataLabels);
+        } catch(e) {
+            console.error("Error loading ChartJS Plugins", e);
+        }
 
-        const CSV_LINK = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSk0F8K5bfpkZ6Q8JUoDBZ68NqTfiW-r8F9s165g7inDSvnVwrQNBU8Dlw2WPOPeqzVCxSl3Emuix4E/pub?gid=890592255&single=true&output=csv&cache=' + Date.now();
+        const CSV_LINK = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSk0F8K5bfpkZ6Q8JUoDBZ68NqTfiW-r8F9s165g7inDSvnVwrQNBU8Dlw2WPOPeqzVCxSl3Emuix4E/pub?gid=890592255&single=true&output=csv&v=' + Date.now();
 
         let charts = {};
 
@@ -115,25 +122,38 @@
                 header: true,
                 skipEmptyLines: true,
                 complete: function(results) {
-                    const data = results.data;
-                    
-                    const validRows = data.filter(r => {
-                        const q = (r.QUARTER || "").trim().toUpperCase();
-                        const y = (r.YEAR || "").trim();
-                        const rate = (r['ACCOMPLISHMENT RATE'] || "").trim();
-
-                        return q === 'Q1' && y === '2026' && rate !== "";
-                    });
-
-                    if (validRows.length > 0) {
-                        updateDashboard(validRows);
-                        buildRanking(validRows);
+                    try {
+                        const data = results.data;
                         
-                        document.getElementById('sync-status').innerText = 'Data Loaded';
-                        document.getElementById('sync-status').className = 'font-bold text-green-300';
-                    } else {
-                        document.getElementById('sync-status').innerText = 'Error: No Data Found';
+                        const validRows = data.filter(r => {
+                            const q = (r.QUARTER || "").trim().toUpperCase();
+                            const y = (r.YEAR || "").trim();
+                            const rate = (r['ACCOMPLISHMENT RATE'] || "").trim();
+
+                            return q === 'Q1' && y === '2026' && rate !== "";
+                        });
+
+                        if (validRows.length > 0) {
+                            updateDashboard(validRows);
+                            buildRanking(validRows);
+                            
+                            document.getElementById('sync-status').innerText = 'Data Loaded';
+                            document.getElementById('sync-status').className = 'font-bold text-green-300';
+                        } else {
+                            document.getElementById('sync-status').innerText = 'Error: No Data Match';
+                            document.getElementById('sync-status').className = 'font-bold text-red-400';
+                        }
+                    } catch(err) {
+                        console.error("Dashboard Logic Error:", err);
+                        document.getElementById('sync-status').innerText = 'ERROR: CODE CRASHED';
+                        document.getElementById('sync-status').className = 'font-bold text-red-500';
                     }
+                },
+                // Dinagdagan natin ng ERROR handler kapag pumalya si Google Sheets
+                error: function(err) {
+                    console.error("Google Sheets Error:", err);
+                    document.getElementById('sync-status').innerText = 'ERROR: CANNOT FETCH DATA (CORS/RATE LIMIT)';
+                    document.getElementById('sync-status').className = 'font-bold text-red-500';
                 }
             });
         }
@@ -231,4 +251,55 @@
                 const office = (r.OFFICE || "Unknown").trim();
                 const status = (r.STATUS || "").trim();
                 
-                const dateKey = Object.keys(r).find(key => key.toUpperCase().
+                const dateKey = Object.keys(r).find(key => key.toUpperCase().includes('ENCODED'));
+                const dateStr = dateKey ? (r[dateKey] || "").trim() : "";
+
+                if (dateStr && status === 'Reported') {
+                    const dateObj = new Date(dateStr);
+                    if (!isNaN(dateObj)) {
+                        dateFound = true;
+                        if (!officeDates[office] || dateObj < officeDates[office]) {
+                            officeDates[office] = dateObj;
+                        }
+                    }
+                }
+            });
+
+            const rankedOffices = Object.keys(officeDates).map(office => {
+                return { office: office, date: officeDates[office] };
+            }).sort((a, b) => a.date - b.date);
+
+            let html = '';
+            rankedOffices.forEach((item, index) => {
+                const dateDisplay = item.date.toLocaleString('en-US', { 
+                    month: 'short', day: 'numeric', year: 'numeric', 
+                    hour: 'numeric', minute: '2-digit', hour12: true 
+                });
+
+                let rankBadge = `<span class="font-bold text-gray-500">${index + 1}</span>`;
+                if(index === 0) rankBadge = `<span class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded font-bold text-[10px]">🥇 1st</span>`;
+                if(index === 1) rankBadge = `<span class="px-2 py-1 bg-gray-200 text-gray-700 rounded font-bold text-[10px]">🥈 2nd</span>`;
+                if(index === 2) rankBadge = `<span class="px-2 py-1 bg-orange-100 text-orange-700 rounded font-bold text-[10px]">🥉 3rd</span>`;
+
+                html += `
+                    <tr class="bg-white border-b hover:bg-gray-50 transition">
+                        <td class="px-4 py-2">${rankBadge}</td>
+                        <td class="px-4 py-2 font-bold text-blue-900">${item.office}</td>
+                        <td class="px-4 py-2 font-mono text-gray-500">${dateDisplay}</td>
+                    </tr>
+                `;
+            });
+
+            if(!dateFound) {
+                html = `<tr><td colspan="3" class="px-4 py-4 text-center text-red-500 bg-red-50 rounded-lg">
+                    ⚠️ System Message: Wala pang nare-record na oras ng submission.
+                </td></tr>`;
+            }
+
+            document.getElementById('ranking-body').innerHTML = html;
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
