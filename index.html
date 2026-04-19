@@ -8,167 +8,135 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
-    
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     
     <style>
-        /* Design Update: Modern Font and Base Colors */
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #0d1117; /* Darkest Navy/Black background like image 3 */
-            color: #c9d1d9; /* Lighter text color */
+            background-color: #0d1117;
+            color: #c9d1d9;
+            overflow-x: hidden;
         }
-        
-        /* Design Update: Custom Styles for Dashboard Cards */
         .dashboard-card {
-            background-color: #161b22; /* Dark Slate card color */
-            border: 1px solid #30363d; /* Subtle dark border */
-            border-radius: 0.75rem; /* Large rounded corners */
-            transition: transform 0.2s ease, border-color 0.2s ease;
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 0.5rem;
+            transition: transform 0.2s ease;
         }
-        
-        .dashboard-card:hover {
-            transform: translateY(-2px);
-            border-color: #58a6ff; /* Blue hover effect */
-        }
-        
         .big-kpi {
             font-weight: 900;
-            color: #f0f6fc; /* Very light white for big numbers */
+            color: #f0f6fc;
         }
-        
         .kpi-title {
-            color: #8b949e; /* Muted gray for kpi labels */
+            color: #8b949e;
         }
+        /* Custom scrollbar para malinis */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0d1117; }
+        ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 10px; }
     </style>
 </head>
-<body class="min-h-screen pb-12">
+<body class="min-h-screen">
 
-    <nav class="bg-[#161b22] px-6 py-4 text-white shadow-lg mb-8 border-b border-[#30363d]">
-        <div class="container mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+    <nav class="bg-[#161b22] px-6 py-2 text-white shadow-lg border-b border-[#30363d] sticky top-0 z-50">
+        <div class="container mx-auto flex flex-col md:flex-row justify-between items-center gap-2">
             <div>
-                <h1 class="text-2xl font-black tracking-tight text-[#f0f6fc]">ITRMC DASHBOARD</h1>
-                <p class="text-sm text-[#8b949e]">Accomplishment Monitoring System</p>
+                <h1 class="text-lg font-black tracking-tight text-[#f0f6fc]">ITRMC DASHBOARD</h1>
+                <p class="text-[10px] text-[#8b949e] uppercase tracking-wider">Accomplishment Monitoring</p>
             </div>
             
-            <div class="flex items-center gap-3 bg-[#0d1117] p-3 rounded-xl border border-[#30363d]">
+            <div class="flex items-center gap-2 bg-[#0d1117] p-1.5 rounded-lg border border-[#30363d]">
                 <div class="flex flex-col">
-                    <label class="text-[10px] uppercase font-bold text-[#8b949e]">Year</label>
-                    <select id="filter-year" onchange="applyFilters()" class="bg-[#21262d] text-[#f0f6fc] text-sm rounded-lg px-3 py-1.5 outline-none border border-[#30363d] font-bold cursor-pointer">
+                    <label class="text-[8px] uppercase font-bold text-[#8b949e] px-1">Year</label>
+                    <select id="filter-year" onchange="applyFilters()" class="bg-[#21262d] text-[#f0f6fc] text-xs rounded px-2 py-0.5 outline-none border border-[#30363d] font-bold cursor-pointer">
                     </select>
                 </div>
                 <div class="flex flex-col">
-                    <label class="text-[10px] uppercase font-bold text-[#8b949e]">Quarter</label>
-                    <select id="filter-quarter" onchange="applyFilters()" class="bg-[#21262d] text-[#f0f6fc] text-sm rounded-lg px-3 py-1.5 outline-none border border-[#30363d] font-bold cursor-pointer">
+                    <label class="text-[8px] uppercase font-bold text-[#8b949e] px-1">Quarter</label>
+                    <select id="filter-quarter" onchange="applyFilters()" class="bg-[#21262d] text-[#f0f6fc] text-xs rounded px-2 py-0.5 outline-none border border-[#30363d] font-bold cursor-pointer">
                         <option value="Q1">Q1</option>
                         <option value="Q2">Q2</option>
                         <option value="Q3">Q3</option>
                         <option value="Q4">Q4</option>
                     </select>
                 </div>
-                <div class="text-right ml-2 pl-3 border-l border-[#30363d]">
-                    <p class="text-[10px] uppercase font-bold text-[#8b949e]">Data Status</p>
-                    <span id="sync-status" class="text-xs font-bold text-[#f2cc60]">Syncing...</span>
+                <div class="text-right ml-1 pl-2 border-l border-[#30363d]">
+                    <span id="sync-status" class="text-[10px] font-bold text-[#f2cc60]">Syncing...</span>
                 </div>
             </div>
         </div>
     </nav>
 
-    <div class="container mx-auto px-4 min-h-[80vh] flex flex-col">
+    <div class="container mx-auto px-4 h-[calc(100vh-80px)] flex flex-col justify-between py-2">
         
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <div class="dashboard-card py-6 px-8 text-center border-b-4 border-b-[#388bfd]">
-                <p class="kpi-title text-sm font-semibold uppercase mb-2">Average Accomplishment</p>
-                <h2 id="stat-avg" class="big-kpi text-6xl">0.00%</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div class="dashboard-card py-3 px-6 text-center border-b-2 border-b-[#388bfd]">
+                <p class="kpi-title text-[10px] font-bold uppercase mb-0.5">Average Accomplishment</p>
+                <h2 id="stat-avg" class="big-kpi text-4xl leading-none">0.00%</h2>
             </div>
-            <div class="dashboard-card py-6 px-8 text-center border-b-4 border-b-[#3fb950]">
-                <p class="kpi-title text-sm font-semibold uppercase mb-2">Overall Compliance</p>
-                <h2 id="stat-comp" class="big-kpi text-6xl">0.00%</h2>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-            <div class="dashboard-card p-4 text-center border-b-4 border-b-[#8b949e]">
-                <p class="kpi-title text-xs font-semibold uppercase mb-1.5 flex items-center justify-center gap-1.5">
-                    <svg class="w-3 h-3 text-[#8b949e]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z"></path></svg>
-                    Total KPI
-                </p>
-                <h2 id="stat-total" class="big-kpi text-4xl">0</h2>
-            </div>
-            <div class="dashboard-card p-4 text-center border-b-4 border-b-[#388bfd]">
-                <p class="kpi-title text-xs font-semibold uppercase mb-1.5 flex items-center justify-center gap-1.5">
-                    <svg class="w-3 h-3 text-[#388bfd]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                    Encoded KPI
-                </p>
-                <h2 id="stat-encoded" class="big-kpi text-4xl text-[#388bfd]">0</h2>
-            </div>
-            <div class="dashboard-card p-4 text-center border-b-4 border-b-[#3fb950]">
-                <p class="kpi-title text-xs font-semibold uppercase mb-1.5 flex items-center justify-center gap-1.5">
-                    <svg class="w-3 h-3 text-[#3fb950]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    On-Time
-                </p>
-                <h2 id="stat-ontime" class="big-kpi text-4xl text-[#3fb950]">0</h2>
-            </div>
-            <div class="dashboard-card p-4 text-center border-b-4 border-b-[#d29922]">
-                <p class="kpi-title text-xs font-semibold uppercase mb-1.5 flex items-center justify-center gap-1.5">
-                    <svg class="w-3 h-3 text-[#d29922]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                    Late
-                </p>
-                <h2 id="stat-late" class="big-kpi text-4xl text-[#d29922]">0</h2>
-            </div>
-            <div class="dashboard-card p-4 text-center border-b-4 border-b-[#f85149]">
-                <p class="kpi-title text-xs font-semibold uppercase mb-1.5 flex items-center justify-center gap-1.5">
-                    <svg class="w-3 h-3 text-[#f85149]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    Missing
-                </p>
-                <h2 id="stat-missing" class="big-kpi text-4xl text-[#f85149]">0</h2>
+            <div class="dashboard-card py-3 px-6 text-center border-b-2 border-b-[#3fb950]">
+                <p class="kpi-title text-[10px] font-bold uppercase mb-0.5">Overall Compliance</p>
+                <h2 id="stat-comp" class="big-kpi text-4xl leading-none">0.00%</h2>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 flex-grow">
-            <div class="dashboard-card p-6 lg:col-span-2">
-                <h3 class="kpi-title font-bold mb-4 flex items-center text-sm uppercase tracking-wider">
-                    <span class="w-3 h-3 bg-[#388bfd] rounded-full mr-2.5"></span>
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+            <div class="dashboard-card p-2 text-center border-b-2 border-b-[#8b949e]">
+                <p class="kpi-title text-[9px] font-bold uppercase mb-0.5">Total KPI</p>
+                <h2 id="stat-total" class="big-kpi text-2xl leading-tight">0</h2>
+            </div>
+            <div class="dashboard-card p-2 text-center border-b-2 border-b-[#388bfd]">
+                <p class="kpi-title text-[9px] font-bold uppercase mb-0.5">Encoded</p>
+                <h2 id="stat-encoded" class="big-kpi text-2xl leading-tight text-[#388bfd]">0</h2>
+            </div>
+            <div class="dashboard-card p-2 text-center border-b-2 border-b-[#3fb950]">
+                <p class="kpi-title text-[9px] font-bold uppercase mb-0.5">On-Time</p>
+                <h2 id="stat-ontime" class="big-kpi text-2xl leading-tight text-[#3fb950]">0</h2>
+            </div>
+            <div class="dashboard-card p-2 text-center border-b-2 border-b-[#d29922]">
+                <p class="kpi-title text-[9px] font-bold uppercase mb-0.5">Late</p>
+                <h2 id="stat-late" class="big-kpi text-2xl leading-tight text-[#d29922]">0</h2>
+            </div>
+            <div class="dashboard-card p-2 text-center border-b-2 border-b-[#f85149]">
+                <p class="kpi-title text-[9px] font-bold uppercase mb-0.5">Missing</p>
+                <h2 id="stat-missing" class="big-kpi text-2xl leading-tight text-[#f85149]">0</h2>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-grow mt-3 mb-2">
+            <div class="dashboard-card p-4 lg:col-span-2 flex flex-col">
+                <h3 class="kpi-title font-bold mb-2 flex items-center text-[10px] uppercase tracking-wider">
+                    <span class="w-2 h-2 bg-[#388bfd] rounded-full mr-2"></span>
                     Accomplishment Rate per Office (%)
                 </h3>
-                <div class="relative" style="height:350px">
+                <div class="relative flex-grow">
                     <canvas id="barChart"></canvas>
                 </div>
             </div>
 
-            <div class="dashboard-card p-6 flex flex-col justify-center text-center">
-                <h3 class="kpi-title font-bold mb-3 flex items-center justify-center text-sm uppercase tracking-wider">
-                    <span class="w-3 h-3 bg-[#3fb950] rounded-full mr-2.5"></span>
+            <div class="dashboard-card p-4 flex flex-col items-center justify-center text-center">
+                <h3 class="kpi-title font-bold mb-2 text-[10px] uppercase tracking-wider">
                     Submission Overview
                 </h3>
-                <div class="w-full max-w-[250px] mx-auto mt-6">
+                <div class="w-full max-h-[180px] flex items-center justify-center">
                     <canvas id="pieChart"></canvas>
                 </div>
             </div>
         </div>
-
     </div>
 
-    <div class="container mx-auto px-4 mt-24">
-        
-        <div class="border-t-2 border-dashed border-[#30363d] pt-12 mb-8 text-center opacity-70">
-            <p class="text-[#8b949e] text-sm uppercase tracking-widest">Scroll down for details</p>
-            <span class="text-2xl">⬇️</span>
-        </div>
-
+    <div class="container mx-auto px-4 py-12 border-t border-[#30363d]">
         <div class="dashboard-card p-8 border-t-4 border-t-[#8957e5] w-full">
-            <h3 class="big-kpi text-3xl mb-3 flex items-center justify-center gap-3">
-                🏆 EARLY BIRD RANKING
-            </h3>
-            <p id="ranking-subtitle" class="text-sm text-[#8b949e] mb-10 text-center uppercase tracking-wider italic">Earliest Submissions</p>
+            <h3 class="big-kpi text-2xl mb-2 text-center">🏆 EARLY BIRD RANKING</h3>
+            <p id="ranking-subtitle" class="text-xs text-[#8b949e] mb-8 text-center uppercase tracking-widest italic">Ranked by Earliest Date Encoded</p>
             
             <div class="overflow-x-auto w-full">
-                <table class="w-full text-sm text-left text-[#c9d1d9] table-auto">
-                    <thead class="text-xs text-[#8b949e] uppercase bg-[#0d1117] border border-[#30363d] rounded-lg">
+                <table class="w-full text-sm text-left text-[#c9d1d9]">
+                    <thead class="text-xs text-[#8b949e] uppercase bg-[#0d1117] border border-[#30363d]">
                         <tr>
-                            <th class="px-6 py-4.5 font-bold">Rank</th>
-                            <th class="px-6 py-4.5 font-bold">Office / Division</th>
-                            <th class="px-6 py-4.5 font-bold">Date & Time Encoded</th>
+                            <th class="px-6 py-4">Rank</th>
+                            <th class="px-6 py-4">Office / Division</th>
+                            <th class="px-6 py-4">Date & Time Encoded</th>
                         </tr>
                     </thead>
                     <tbody id="ranking-body" class="divide-y divide-[#30363d]">
@@ -176,23 +144,14 @@
                 </table>
             </div>
         </div>
-
     </div>
 
     <script>
-        // NO LOGIC CHANGES ALLOWED AS PER USER REQUEST.
-        // JUST UPDATE CHART COLORS TO MATCH THE DARK DESIGN.
-        
         try {
             Chart.register(ChartDataLabels);
-            
-            // Design Update: Setting Chart Default Colors
-            Chart.defaults.color = '#8b949e'; // Default text color for charts
-            Chart.defaults.borderColor = '#30363d'; // Default border/gridline color
-            
-        } catch(e) {
-            console.error("Error loading ChartJS Plugins", e);
-        }
+            Chart.defaults.color = '#8b949e';
+            Chart.defaults.borderColor = 'transparent';
+        } catch(e) { console.error(e); }
 
         const CSV_LINK = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSk0F8K5bfpkZ6Q8JUoDBZ68NqTfiW-r8F9s165g7inDSvnVwrQNBU8Dlw2WPOPeqzVCxSl3Emuix4E/pub?gid=890592255&single=true&output=csv&v=' + Date.now();
 
@@ -201,9 +160,7 @@
 
         function init() {
             Papa.parse(CSV_LINK, {
-                download: true,
-                header: true,
-                skipEmptyLines: true,
+                download: true, header: true, skipEmptyLines: true,
                 complete: function(results) {
                     rawData = results.data;
                     setupYearFilter(rawData);
@@ -215,18 +172,12 @@
         function setupYearFilter(data) {
             const years = [...new Set(data.map(r => (r.YEAR || "").trim()).filter(y => y !== ""))].sort().reverse();
             const yearSelect = document.getElementById('filter-year');
-            
             yearSelect.innerHTML = '';
-            
             if(years.length === 0) {
-                const opt = document.createElement('option');
-                opt.value = "2026"; opt.text = "2026";
-                yearSelect.add(opt);
+                const opt = document.createElement('option'); opt.value = "2026"; opt.text = "2026"; yearSelect.add(opt);
             } else {
                 years.forEach(y => {
-                    const opt = document.createElement('option');
-                    opt.value = y; opt.text = y;
-                    yearSelect.add(opt);
+                    const opt = document.createElement('option'); opt.value = y; opt.text = y; yearSelect.add(opt);
                 });
             }
         }
@@ -235,30 +186,25 @@
             const selectedYear = document.getElementById('filter-year').value;
             const selectedQuarter = document.getElementById('filter-quarter').value;
 
-            // NO LOGIC CHANGES ALLOWED.
             const periodKPIs = rawData.filter(r => {
-                const q = (r.QUARTER || "").trim().toUpperCase();
-                const y = (r.YEAR || "").trim();
-                const rate = (r['ACCOMPLISHMENT RATE'] || "").trim();
-                return q === selectedQuarter && y === selectedYear && rate !== "";
+                const accRate = (r['ACCOMPLISHMENT RATE'] || "").trim();
+                return accRate !== "" && (r.QUARTER || "").trim().toUpperCase() === selectedQuarter && (r.YEAR || "").trim() === selectedYear;
             });
 
             const validEncoded = periodKPIs.filter(r => {
                 const dateKey = Object.keys(r).find(key => key.toUpperCase().includes('ENCODED'));
-                const dateVal = (r[dateKey] || "").trim();
-                const status = (r.STATUS || "").trim();
-                return status === 'Reported' && dateVal !== "";
+                return (r[dateKey] || "").trim() !== "";
             });
 
             if (periodKPIs.length > 0) {
                 updateDashboard(periodKPIs, validEncoded);
                 buildRanking(validEncoded);
-                document.getElementById('sync-status').innerText = 'Data Loaded';
-                document.getElementById('sync-status').className = 'font-bold text-[#3fb950]'; // Green
+                document.getElementById('sync-status').innerText = 'Online';
+                document.getElementById('sync-status').className = 'text-[10px] font-bold text-[#3fb950]';
             } else {
                 clearDashboard();
-                document.getElementById('sync-status').innerText = 'No Data Found';
-                document.getElementById('sync-status').className = 'font-bold text-[#f85149]'; // Red
+                document.getElementById('sync-status').innerText = 'No Data';
+                document.getElementById('sync-status').className = 'text-[10px] font-bold text-[#f85149]';
             }
         }
 
@@ -268,11 +214,10 @@
             ['total', 'encoded', 'ontime', 'late', 'missing'].forEach(id => document.getElementById('stat-'+id).innerText = '0');
             if(charts.bar) charts.bar.destroy();
             if(charts.pie) charts.pie.destroy();
-            document.getElementById('ranking-body').innerHTML = '<tr><td colspan="3" class="px-6 py-8 text-center text-[#f85149] bg-[#161b22] border border-[#30363d] rounded-lg">⚠️ Walang data para sa period na ito.</td></tr>';
         }
 
         function updateDashboard(allRows, encodedRows) {
-            const total = allRows.length; 
+            const total = allRows.length;
             const encodedCount = encodedRows.length;
             const onTime = encodedRows.filter(r => (r['WITHIN DEADLINE'] || "").trim() === 'On Time').length;
             const late = encodedRows.filter(r => (r['WITHIN DEADLINE'] || "").trim() === 'Late').length;
@@ -296,98 +241,55 @@
             document.getElementById('stat-missing').innerText = missing;
 
             const grouped = {};
-            encodedRows.forEach(r => {
+            allRows.forEach(r => {
                 const office = (r.OFFICE || "Unknown").trim();
-                const rate = parseFloat((r['ACCOMPLISHMENT RATE'] || "0").replace('%', '')) || 0;
+                const dateKey = Object.keys(r).find(key => key.toUpperCase().includes('ENCODED'));
+                const hasDate = (r[dateKey] || "").trim() !== "";
                 if (!grouped[office]) grouped[office] = { sum: 0, count: 0 };
-                grouped[office].sum += rate; grouped[office].count += 1;
+                if (hasDate) {
+                    const rate = parseFloat((r['ACCOMPLISHMENT RATE'] || "0").replace('%', '')) || 0;
+                    grouped[office].sum += rate;
+                    grouped[office].count += 1;
+                } else {
+                    grouped[office].sum += 0;
+                    grouped[office].count += 1;
+                }
             });
 
-            const labels = Object.keys(grouped);
-            const dataValues = labels.map(l => (grouped[l].sum / grouped[l].count).toFixed(2));
-
-            renderCharts(labels, dataValues, encodedCount, missing);
+            renderCharts(Object.keys(grouped), Object.keys(grouped).map(l => (grouped[l].sum / grouped[l].count).toFixed(2)), encodedCount, missing);
         }
 
         function renderCharts(labels, dataValues, encoded, missing) {
             if(charts.bar) charts.bar.destroy();
             if(charts.pie) charts.pie.destroy();
 
-            // Bar Chart Design Update: Blue Bars, Bold text
             charts.bar = new Chart(document.getElementById('barChart'), {
                 type: 'bar',
                 data: {
                     labels: labels,
-                    datasets: [{
-                        label: 'Average Rate (%)',
-                        data: dataValues,
-                        backgroundColor: '#388bfd', // Modern Blue
-                        borderRadius: 6 // rounded bar corners
-                    }]
+                    datasets: [{ label: 'Avg Rate (%)', data: dataValues, backgroundColor: '#388bfd', borderRadius: 4 }]
                 },
                 options: { 
-                    indexAxis: 'y', 
-                    maintainAspectRatio: false,
+                    indexAxis: 'y', maintainAspectRatio: false,
                     plugins: { 
                         legend: { display: false },
-                        datalabels: {
-                            anchor: 'end',
-                            align: 'right',
-                            color: '#388bfd', // Blue labels
-                            font: { weight: 'bold', size: 12 },
-                            formatter: function(value) { return value + '%'; }
-                        }
+                        datalabels: { anchor: 'end', align: 'right', color: '#58a6ff', font: { weight: 'bold', size: 10 }, formatter: v => v + '%' }
                     },
                     scales: {
-                        x: { 
-                            beginAtZero: true, 
-                            grace: '15%',
-                            ticks: { font: { weight: 'semibold' } },
-                            grid: { display: true } // Display grid for modern look
-                        },
-                        y: {
-                            ticks: { font: { weight: 'semibold' } },
-                            grid: { display: false } // No vertical gridlines
-                        }
+                        x: { beginAtZero: true, grid: { color: '#30363d' }, ticks: { font: { size: 9 } } },
+                        y: { ticks: { font: { size: 9 } } }
                     }
                 }
             });
 
-            // Pie Chart Design Update: Bold Ring, Modern Colors
             charts.pie = new Chart(document.getElementById('pieChart'), {
                 type: 'doughnut',
-                data: {
-                    labels: ['Encoded', 'Missing'],
-                    datasets: [{
-                        data: [encoded, missing],
-                        backgroundColor: ['#3fb950', '#f85149'], // Green for Encoded, Red for Missing
-                        borderWidth: 3,
-                        borderColor: '#161b22', // Dark card background as border
-                    }]
-                },
+                data: { labels: ['Encoded', 'Missing'], datasets: [{ data: [encoded, missing], backgroundColor: ['#3fb950', '#f85149'], borderWidth: 2, borderColor: '#161b22' }] },
                 options: { 
-                    cutout: '60%', // Thicker ring for bolder look like image 3
+                    cutout: '65%', maintainAspectRatio: false,
                     plugins: { 
-                        legend: { 
-                            position: 'bottom', 
-                            labels: { 
-                                boxWidth: 15, 
-                                padding: 25, 
-                                font: { weight: 'semibold' } 
-                            } 
-                        }, 
-                        datalabels: {
-                            display: true,
-                            color: '#f0f6fc', // light text on colored ring
-                            font: { weight: 'bold', size: 14 },
-                            formatter: (value, ctx) => {
-                                let sum = 0;
-                                let dataArr = ctx.chart.data.datasets[0].data;
-                                dataArr.map(data => { sum += data; });
-                                let percentage = (value * 100 / sum).toFixed(0) + "%";
-                                return percentage === "0%" ? null : percentage; 
-                            }
-                        }
+                        legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 9 }, padding: 10 } }, 
+                        datalabels: { display: true, color: '#fff', font: { weight: 'bold', size: 11 }, formatter: (value, ctx) => { let sum = 0; ctx.chart.data.datasets[0].data.map(d => sum += d); return sum > 0 ? (value * 100 / sum).toFixed(0) + "%" : ""; } } 
                     } 
                 }
             });
@@ -395,59 +297,24 @@
 
         function buildRanking(rows) {
             const officeDates = {};
-            let dateFound = false;
-
             rows.forEach(r => {
                 const office = (r.OFFICE || "Unknown").trim();
-                const status = (r.STATUS || "").trim();
-                
                 const dateKey = Object.keys(r).find(key => key.toUpperCase().includes('ENCODED'));
-                const dateStr = dateKey ? (r[dateKey] || "").trim() : "";
-
-                if (dateStr && status === 'Reported') {
-                    const dateObj = new Date(dateStr);
-                    if (!isNaN(dateObj)) {
-                        dateFound = true;
-                        if (!officeDates[office] || dateObj < officeDates[office]) {
-                            officeDates[office] = dateObj;
-                        }
-                    }
-                }
+                const dateStr = (r[dateKey] || "").trim();
+                const dateObj = new Date(dateStr);
+                if (!isNaN(dateObj.getTime())) { if (!officeDates[office] || dateObj < officeDates[office]) officeDates[office] = dateObj; }
             });
-
-            const rankedOffices = Object.keys(officeDates).map(office => {
-                return { office: office, date: officeDates[office] };
-            }).sort((a, b) => a.date - b.date);
-
+            const rankedOffices = Object.keys(officeDates).map(o => ({ office: o, date: officeDates[o] })).sort((a, b) => a.date - b.date);
             let html = '';
             rankedOffices.forEach((item, index) => {
-                const dateDisplay = item.date.toLocaleString('en-US', { 
-                    month: 'short', day: 'numeric', year: 'numeric', 
-                    hour: 'numeric', minute: '2-digit', hour12: true 
-                });
-
-                let rankBadge = `<span class="font-black text-[#8b949e] text-lg">${index + 1}</span>`;
-                if(index === 0) rankBadge = `<span class="px-3.5 py-1.5 bg-[#f2cc60]/10 text-[#f2cc60] rounded-full font-black text-xs border border-[#f2cc60]/20">🥇 1st</span>`;
-                if(index === 1) rankBadge = `<span class="px-3.5 py-1.5 bg-[#c9d1d9]/10 text-[#c9d1d9] rounded-full font-black text-xs border border-[#c9d1d9]/20">🥈 2nd</span>`;
-                if(index === 2) rankBadge = `<span class="px-3.5 py-1.5 bg-[#d29922]/10 text-[#d29922] rounded-full font-black text-xs border border-[#d29922]/20">🥉 3rd</span>`;
-
-                // Design Update: Table Rows
-                html += `
-                    <tr class="hover:bg-[#1c222b] transition border-b border-[#30363d]">
-                        <td class="px-6 py-5">${rankBadge}</td>
-                        <td class="px-6 py-5 font-extrabold text-[#f0f6fc] text-lg">${item.office}</td>
-                        <td class="px-6 py-5 font-mono text-sm text-[#8b949e]">${dateDisplay}</td>
-                    </tr>
-                `;
+                const dateDisplay = item.date.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true });
+                let rankBadge = `<span class="font-black text-[#8b949e]">${index + 1}</span>`;
+                if(index === 0) rankBadge = `<span class="text-[#f2cc60]">🥇 1st</span>`;
+                if(index === 1) rankBadge = `<span class="text-[#c9d1d9]">🥈 2nd</span>`;
+                if(index === 2) rankBadge = `<span class="text-[#d29922]">🥉 3rd</span>`;
+                html += `<tr class="border-b border-[#30363d]"><td class="px-6 py-4">${rankBadge}</td><td class="px-6 py-4 font-bold text-[#f0f6fc]">${item.office}</td><td class="px-6 py-4 font-mono text-xs text-[#8b949e]">${dateDisplay}</td></tr>`;
             });
-
-            if(!dateFound) {
-                html = `<tr><td colspan="3" class="px-6 py-8 text-center text-[#f85149] bg-[#161b22] border border-[#30363d] rounded-lg">
-                    ⚠️ System Message: Wala pang nare-record na oras ng submission.
-                </td></tr>`;
-            }
-
-            document.getElementById('ranking-body').innerHTML = html;
+            document.getElementById('ranking-body').innerHTML = html || '<tr><td colspan="3" class="px-6 py-8 text-center text-[#f85149]">⚠️ No encoded dates.</td></tr>';
         }
 
         window.onload = init;
