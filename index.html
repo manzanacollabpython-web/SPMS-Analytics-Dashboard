@@ -69,9 +69,9 @@
 
         <div class="bg-white p-6 rounded-lg shadow-sm border-t-4 border-purple-500">
             <h3 class="text-purple-700 font-bold mb-4 flex items-center">
-                🏆 Early Bird Ranking (Earliest Submissions)
+                🏆 Early Bird Ranking (Q1 Earliest Submissions)
             </h3>
-            <p class="text-xs text-gray-500 mb-4">Ito ang listahan ng mga Division base sa kung sino ang pinakaunang nag-encode ng kanilang Accomplishment Report para sa Q1.</p>
+            <p class="text-xs text-gray-500 mb-4">Ito ang listahan ng mga Division base sa kung sino ang pinakaunang nag-encode ng kanilang Accomplishment Report.</p>
             
             <div class="overflow-x-auto">
                 <table class="w-full text-sm text-left text-gray-600">
@@ -93,7 +93,6 @@
     <script>
         Chart.register(ChartDataLabels);
 
-        // Nilagyan na natin ng cache buster para laging fresh ang data
         const CSV_LINK = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSk0F8K5bfpkZ6Q8JUoDBZ68NqTfiW-r8F9s165g7inDSvnVwrQNBU8Dlw2WPOPeqzVCxSl3Emuix4E/pub?gid=890592255&single=true&output=csv&cache=' + Date.now();
 
         let charts = {};
@@ -116,7 +115,7 @@
 
                     if (validRows.length > 0) {
                         updateDashboard(validRows);
-                        buildRanking(validRows); // TINAWAG NATIN ANG RANKING FUNCTION
+                        buildRanking(validRows); // TAWAG SA RANKING
                         
                         document.getElementById('sync-status').innerText = 'Data Loaded';
                         document.getElementById('sync-status').className = 'font-bold text-green-300';
@@ -198,23 +197,28 @@
             });
         }
 
-        // --- ANG BAGONG RANKING LOGIC ---
+        // --- ANG BULLET-PROOF RANKING LOGIC ---
         function buildRanking(rows) {
             const officeDates = {};
+            let dateFound = false;
 
-            // 1. Hanapin ang pinakaunang date na nag-encode bawat Office
             rows.forEach(r => {
                 const office = (r.OFFICE || "Unknown").trim();
                 const status = (r.STATUS || "").trim();
                 
-                // Susubukan hanapin kung ENCODED DATE ba o TIMESTAMP ang gamit mo sa Sheet
-                const dateStr = (r['ENCODED DATE'] || r['TIMESTAMP'] || "").trim();
+                // SMART FINDER: Hahanapin niya yung column na may salitang "ENCODED"
+                const dateKey = Object.keys(r).find(key => key.toUpperCase().includes('ENCODED'));
+                const dateStr = dateKey ? (r[dateKey] || "").trim() : "";
 
+                // Para sa mga Reported lang at may Date
                 if (dateStr && status === 'Reported') {
                     const dateObj = new Date(dateStr);
                     
+                    // Kung valid yung date na nakuha
                     if (!isNaN(dateObj)) {
-                        // I-save ang date kung ito yung unang beses nakita, O KUNG mas maaga ito sa nakasave
+                        dateFound = true;
+                        
+                        // Kung wala pa sa listahan ang Office na ito, o kung mas maaga itong date na nakuha
                         if (!officeDates[office] || dateObj < officeDates[office]) {
                             officeDates[office] = dateObj;
                         }
@@ -222,21 +226,19 @@
                 }
             });
 
-            // 2. I-sort mula Rank 1 (pinakamaaga) hanggang dulo
+            // I-sort mula Rank 1 pataas
             const rankedOffices = Object.keys(officeDates).map(office => {
                 return { office: office, date: officeDates[office] };
             }).sort((a, b) => a.date - b.date);
 
-            // 3. I-drawing sa Table
+            // Gawan ng HTML ang listahan
             let html = '';
             rankedOffices.forEach((item, index) => {
-                // Pagandahin ang display ng date (e.g., "Jan 15, 2026, 10:30 AM")
                 const dateDisplay = item.date.toLocaleString('en-US', { 
                     month: 'short', day: 'numeric', year: 'numeric', 
-                    hour: 'numeric', minute: '2-digit' 
+                    hour: 'numeric', minute: '2-digit', hour12: true 
                 });
 
-                // Lagyan ng medalya yung Top 3
                 let rankBadge = `<span class="font-bold text-gray-500">${index + 1}</span>`;
                 if(index === 0) rankBadge = `<span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full font-bold text-xs">🥇 1st</span>`;
                 if(index === 1) rankBadge = `<span class="px-3 py-1 bg-gray-200 text-gray-700 rounded-full font-bold text-xs">🥈 2nd</span>`;
@@ -251,10 +253,10 @@
                 `;
             });
 
-            // Kung walang mabasang date (baka mali ang column name)
-            if(html === '') {
+            // Error Message kung sakaling wala pa ring mahanap
+            if(!dateFound) {
                 html = `<tr><td colspan="3" class="px-6 py-8 text-center text-red-500 bg-red-50 rounded-lg">
-                    ⚠️ Hindi makita ang mga petsa. Siguraduhin na may column na pinangalanang <strong>ENCODED DATE</strong> at may laman itong date at oras.
+                    ⚠️ System Message: Wala pang nare-record na oras ng submission para sa Quarter na ito.
                 </td></tr>`;
             }
 
