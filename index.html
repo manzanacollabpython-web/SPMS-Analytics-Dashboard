@@ -26,22 +26,37 @@
 
     <div class="container mx-auto px-4">
         
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div class="bg-white p-6 rounded-lg shadow-sm border-b-4 border-blue-500">
-                <p class="text-gray-500 text-xs font-bold uppercase mb-2">Total Indicators</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+            <div class="bg-white p-6 rounded-lg shadow-sm border-b-4 border-blue-600 text-center">
+                <p class="text-gray-500 text-sm font-bold uppercase mb-2">Average Accomplishment</p>
+                <h2 id="stat-avg" class="text-5xl font-black text-blue-700">0.00%</h2>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-sm border-b-4 border-teal-500 text-center">
+                <p class="text-gray-500 text-sm font-bold uppercase mb-2">Overall Compliance</p>
+                <h2 id="stat-comp" class="text-5xl font-black text-teal-600">0.00%</h2>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+            <div class="bg-white p-4 rounded-lg shadow-sm border-b-4 border-gray-400 text-center">
+                <p class="text-gray-500 text-[10px] sm:text-xs font-bold uppercase mb-1">Total KPI</p>
                 <h2 id="stat-total" class="text-3xl font-black text-gray-800">0</h2>
             </div>
-            <div class="bg-white p-6 rounded-lg shadow-sm border-b-4 border-green-500">
-                <p class="text-gray-500 text-xs font-bold uppercase mb-2">Reported</p>
-                <h2 id="stat-reported" class="text-3xl font-black text-green-600">0</h2>
+            <div class="bg-white p-4 rounded-lg shadow-sm border-b-4 border-blue-400 text-center">
+                <p class="text-gray-500 text-[10px] sm:text-xs font-bold uppercase mb-1">Encoded KPI</p>
+                <h2 id="stat-encoded" class="text-3xl font-black text-blue-600">0</h2>
             </div>
-            <div class="bg-white p-6 rounded-lg shadow-sm border-b-4 border-yellow-500">
-                <p class="text-gray-500 text-xs font-bold uppercase mb-2">On Time</p>
-                <h2 id="stat-ontime" class="text-3xl font-black text-yellow-600">0</h2>
+            <div class="bg-white p-4 rounded-lg shadow-sm border-b-4 border-green-500 text-center">
+                <p class="text-gray-500 text-[10px] sm:text-xs font-bold uppercase mb-1">On-Time</p>
+                <h2 id="stat-ontime" class="text-3xl font-black text-green-600">0</h2>
             </div>
-            <div class="bg-white p-6 rounded-lg shadow-sm border-b-4 border-red-500">
-                <p class="text-gray-500 text-xs font-bold uppercase mb-2">Pending</p>
-                <h2 id="stat-pending" class="text-3xl font-black text-red-600">0</h2>
+            <div class="bg-white p-4 rounded-lg shadow-sm border-b-4 border-yellow-500 text-center">
+                <p class="text-gray-500 text-[10px] sm:text-xs font-bold uppercase mb-1">Late</p>
+                <h2 id="stat-late" class="text-3xl font-black text-yellow-600">0</h2>
+            </div>
+            <div class="bg-white p-4 rounded-lg shadow-sm border-b-4 border-red-500 text-center">
+                <p class="text-gray-500 text-[10px] sm:text-xs font-bold uppercase mb-1">Not Submitted</p>
+                <h2 id="stat-missing" class="text-3xl font-black text-red-600">0</h2>
             </div>
         </div>
 
@@ -115,7 +130,7 @@
 
                     if (validRows.length > 0) {
                         updateDashboard(validRows);
-                        buildRanking(validRows); // TAWAG SA RANKING
+                        buildRanking(validRows);
                         
                         document.getElementById('sync-status').innerText = 'Data Loaded';
                         document.getElementById('sync-status').className = 'font-bold text-green-300';
@@ -128,15 +143,32 @@
 
         function updateDashboard(rows) {
             const total = rows.length; 
-            const reported = rows.filter(r => (r.STATUS || "").trim() === 'Reported').length;
+            const encoded = rows.length; // Same sa total dahil naka-filter na yung may laman
             const onTime = rows.filter(r => (r['WITHIN DEADLINE'] || "").trim() === 'On Time').length;
-            const pending = total - reported;
+            const late = rows.filter(r => (r['WITHIN DEADLINE'] || "").trim() === 'Late').length;
+            const missing = total - encoded; // Laging 0 muna ito base sa filter mo
 
+            // Computations para sa 2 Malaking Cards
+            let totalRateSum = 0;
+            rows.forEach(r => {
+                const rate = parseFloat((r['ACCOMPLISHMENT RATE'] || "0").replace('%', '')) || 0;
+                totalRateSum += rate;
+            });
+            
+            const avgAccomplishment = total > 0 ? (totalRateSum / total).toFixed(2) : "0.00";
+            const compliance = total > 0 ? ((encoded / total) * 100).toFixed(2) : "0.00";
+
+            // Pasok ang text sa UI
+            document.getElementById('stat-avg').innerText = avgAccomplishment + '%';
+            document.getElementById('stat-comp').innerText = compliance + '%';
+            
             document.getElementById('stat-total').innerText = total;
-            document.getElementById('stat-reported').innerText = reported;
+            document.getElementById('stat-encoded').innerText = encoded;
             document.getElementById('stat-ontime').innerText = onTime;
-            document.getElementById('stat-pending').innerText = pending;
+            document.getElementById('stat-late').innerText = late;
+            document.getElementById('stat-missing').innerText = missing;
 
+            // Grouping para sa Bar Chart
             const grouped = {};
             rows.forEach(r => {
                 const office = (r.OFFICE || "Unknown").trim();
@@ -150,10 +182,10 @@
             const labels = Object.keys(grouped);
             const dataValues = labels.map(l => (grouped[l].sum / grouped[l].count).toFixed(2));
 
-            renderCharts(labels, dataValues, reported, pending);
+            renderCharts(labels, dataValues, encoded, missing);
         }
 
-        function renderCharts(labels, dataValues, reported, pending) {
+        function renderCharts(labels, dataValues, encoded, missing) {
             if(charts.bar) charts.bar.destroy();
             if(charts.pie) charts.pie.destroy();
 
@@ -183,12 +215,13 @@
                 }
             });
 
+            // Binago ang label para mag-match sa Encoded KPI
             charts.pie = new Chart(document.getElementById('pieChart'), {
                 type: 'doughnut',
                 data: {
-                    labels: ['Reported', 'Pending'],
+                    labels: ['Encoded', 'Not Submitted'],
                     datasets: [{
-                        data: [reported, pending],
+                        data: [encoded, missing],
                         backgroundColor: ['#22c55e', '#ef4444'],
                         borderWidth: 0
                     }]
@@ -197,7 +230,6 @@
             });
         }
 
-        // --- ANG BULLET-PROOF RANKING LOGIC ---
         function buildRanking(rows) {
             const officeDates = {};
             let dateFound = false;
@@ -206,19 +238,13 @@
                 const office = (r.OFFICE || "Unknown").trim();
                 const status = (r.STATUS || "").trim();
                 
-                // SMART FINDER: Hahanapin niya yung column na may salitang "ENCODED"
                 const dateKey = Object.keys(r).find(key => key.toUpperCase().includes('ENCODED'));
                 const dateStr = dateKey ? (r[dateKey] || "").trim() : "";
 
-                // Para sa mga Reported lang at may Date
                 if (dateStr && status === 'Reported') {
                     const dateObj = new Date(dateStr);
-                    
-                    // Kung valid yung date na nakuha
                     if (!isNaN(dateObj)) {
                         dateFound = true;
-                        
-                        // Kung wala pa sa listahan ang Office na ito, o kung mas maaga itong date na nakuha
                         if (!officeDates[office] || dateObj < officeDates[office]) {
                             officeDates[office] = dateObj;
                         }
@@ -226,12 +252,10 @@
                 }
             });
 
-            // I-sort mula Rank 1 pataas
             const rankedOffices = Object.keys(officeDates).map(office => {
                 return { office: office, date: officeDates[office] };
             }).sort((a, b) => a.date - b.date);
 
-            // Gawan ng HTML ang listahan
             let html = '';
             rankedOffices.forEach((item, index) => {
                 const dateDisplay = item.date.toLocaleString('en-US', { 
@@ -253,10 +277,9 @@
                 `;
             });
 
-            // Error Message kung sakaling wala pa ring mahanap
             if(!dateFound) {
                 html = `<tr><td colspan="3" class="px-6 py-8 text-center text-red-500 bg-red-50 rounded-lg">
-                    ⚠️ System Message: Wala pang nare-record na oras ng submission para sa Quarter na ito.
+                    ⚠️ System Message: Wala pang nare-record na oras ng submission.
                 </td></tr>`;
             }
 
