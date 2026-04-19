@@ -3,137 +3,140 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ITRMC Accomplishment Dashboard</title>
+    <title>ITRMC Performance Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        .card-gradient { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); }
+        body { font-family: 'Inter', sans-serif; }
+        .glass-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen pb-10">
+<body class="bg-slate-100 min-h-screen">
 
-    <nav class="card-gradient p-6 text-white shadow-lg mb-8">
-        <div class="container mx-auto flex justify-between items-center">
+    <nav class="bg-blue-800 text-white py-6 shadow-xl">
+        <div class="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center">
             <div>
-                <h1 class="text-2xl font-bold tracking-tight">ITRMC DASHBOARD</h1>
-                <p class="text-blue-100 text-sm">Accomplishment Monitoring System</p>
+                <h1 class="text-3xl font-black tracking-tighter">ITRMC MONITORING</h1>
+                <p class="text-blue-200 text-sm font-medium uppercase tracking-widest">Hospital Performance Dashboard</p>
             </div>
-            <div class="text-right hidden md:block text-xs opacity-80">
-                Data Source: Google Sheets API<br>
-                Status: <span id="sync-status">Syncing...</span>
+            <div id="last-update" class="text-xs mt-4 md:mt-0 bg-blue-900 px-4 py-2 rounded-full border border-blue-700">
+                Syncing live data...
             </div>
         </div>
     </nav>
 
-    <div class="container mx-auto px-4">
+    <div class="container mx-auto px-4 -mt-8">
         
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            <div class="bg-white p-5 rounded-xl shadow-sm border-b-4 border-blue-600">
-                <p class="text-gray-500 text-xs font-bold uppercase">Total Indicators</p>
-                <h2 id="stat-total" class="text-3xl font-black text-gray-800">0</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="glass-card p-6 rounded-3xl shadow-sm border border-white">
+                <p class="text-slate-500 text-xs font-bold uppercase mb-1">Indicators Tracked</p>
+                <h2 id="total-count" class="text-4xl font-black text-blue-900">0</h2>
             </div>
-            <div class="bg-white p-5 rounded-xl shadow-sm border-b-4 border-green-500">
-                <p class="text-gray-500 text-xs font-bold uppercase">Reported</p>
-                <h2 id="stat-reported" class="text-3xl font-black text-green-600">0</h2>
+            <div class="glass-card p-6 rounded-3xl shadow-sm border border-white">
+                <p class="text-slate-500 text-xs font-bold uppercase mb-1">Total Reported</p>
+                <h2 id="reported-count" class="text-4xl font-black text-green-600">0</h2>
             </div>
-            <div class="bg-white p-5 rounded-xl shadow-sm border-b-4 border-yellow-500">
-                <p class="text-gray-500 text-xs font-bold uppercase">On Time</p>
-                <h2 id="stat-ontime" class="text-3xl font-black text-yellow-600">0</h2>
-            </div>
-            <div class="bg-white p-5 rounded-xl shadow-sm border-b-4 border-red-500">
-                <p class="text-gray-500 text-xs font-bold uppercase">Pending</p>
-                <h2 id="stat-pending" class="text-3xl font-black text-red-600">0</h2>
+            <div class="glass-card p-6 rounded-3xl shadow-sm border border-white">
+                <p class="text-slate-500 text-xs font-bold uppercase mb-1">On-Time Submissions</p>
+                <h2 id="ontime-count" class="text-4xl font-black text-amber-500">0</h2>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div class="bg-white p-6 rounded-2xl shadow-sm">
-                <h3 class="text-gray-700 font-bold mb-4 flex items-center">
-                    <span class="w-2 h-2 bg-blue-600 rounded-full mr-2"></span>
-                    Accomplishment Rate per Office (%)
-                </h3>
-                <canvas id="barChart" height="200"></canvas>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
+            
+            <div class="bg-white p-8 rounded-3xl shadow-sm">
+                <div class="mb-6">
+                    <h3 class="text-xl font-bold text-slate-800 italic">Office Performance</h3>
+                    <p class="text-sm text-slate-500 font-medium">Accomplishment rate based on reported data</p>
+                </div>
+                <canvas id="mainChart" height="250"></canvas>
             </div>
 
-            <div class="bg-white p-6 rounded-2xl shadow-sm">
-                <h3 class="text-gray-700 font-bold mb-4 flex items-center">
-                    <span class="w-2 h-2 bg-blue-600 rounded-full mr-2"></span>
-                    Submission Overview
-                </h3>
-                <div class="max-w-[300px] mx-auto">
-                    <canvas id="pieChart"></canvas>
+            <div class="bg-white p-8 rounded-3xl shadow-sm">
+                <div class="mb-6">
+                    <h3 class="text-xl font-bold text-slate-800 italic">Submission Status</h3>
+                    <p class="text-sm text-slate-500 font-medium">Overall report compliance</p>
+                </div>
+                <div class="max-w-[280px] mx-auto">
+                    <canvas id="statusChart"></canvas>
                 </div>
             </div>
+
         </div>
     </div>
 
     <script>
-        // --- CONFIGURATION ---
-        const API_KEY = 'YOUR_GOOGLE_API_KEY'; 
-        const SHEET_ID = 'YOUR_SHEET_ID';
-        const RANGE = 'Sheet1!A2:L100'; // Start from Row 2 to skip headers
+        const CSV_LINK = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSk0F8K5bfpkZ6Q8JUoDBZ68NqTfiW-r8F9s165g7inDSvnVwrQNBU8Dlw2WPOPeqzVCxSl3Emuix4E/pub?gid=890592255&single=true&output=csv';
 
-        async function init() {
-            try {
-                const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${RANGE}?key=${API_KEY}`);
-                const data = await response.json();
-                const rows = data.values;
-
-                if (!rows) return;
-
-                // 1. Process Stats
-                const total = rows.length;
-                const reported = rows.filter(r => r[8] === 'Reported').length; // Column I (STATUS)
-                const onTime = rows.filter(r => r[9] === 'On Time').length;     // Column J (DEADLINE)
-                
-                document.getElementById('stat-total').innerText = total;
-                document.getElementById('stat-reported').innerText = reported;
-                document.getElementById('stat-ontime').innerText = onTime;
-                document.getElementById('stat-pending').innerText = total - reported;
-                document.getElementById('sync-status').innerText = 'Connected';
-
-                // 2. Bar Chart Data (Office vs Rate)
-                const officeData = {};
-                rows.forEach(r => {
-                    const office = r[0]; // Column A
-                    const rate = parseFloat(r[2]) || 0; // Column C (ACCOMPLISHMENT RATE)
-                    if(r[8] === 'Reported') {
-                        officeData[office] = rate;
-                    }
-                });
-
-                new Chart(document.getElementById('barChart'), {
-                    type: 'bar',
-                    data: {
-                        labels: Object.keys(officeData),
-                        datasets: [{
-                            label: 'Accomplishment %',
-                            data: Object.values(officeData),
-                            backgroundColor: '#3b82f6',
-                            borderRadius: 8
-                        }]
-                    }
-                });
-
-                // 3. Pie Chart Data (Status)
-                new Chart(document.getElementById('pieChart'), {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Reported', 'Not Reported'],
-                        datasets: [{
-                            data: [reported, total - reported],
-                            backgroundColor: ['#10b981', '#ef4444']
-                        }]
-                    }
-                });
-
-            } catch (err) {
-                console.error(err);
-                document.getElementById('sync-status').innerText = 'Error';
-            }
+        function initDashboard() {
+            Papa.parse(CSV_LINK, {
+                download: true,
+                header: true,
+                complete: function(results) {
+                    const rows = results.data.filter(r => r.OFFICE); // Filter empty rows
+                    renderMetrics(rows);
+                    renderCharts(rows);
+                    document.getElementById('last-update').innerText = 'Last Updated: ' + new Date().toLocaleTimeString();
+                }
+            });
         }
 
-        init();
+        function renderMetrics(rows) {
+            const reported = rows.filter(r => r.STATUS === 'Reported');
+            const onTime = rows.filter(r => r['WITHIN DEADLINE'] === 'On Time');
+
+            document.getElementById('total-count').innerText = rows.length;
+            document.getElementById('reported-count').innerText = reported.length;
+            document.getElementById('ontime-count').innerText = onTime.length;
+        }
+
+        function renderCharts(rows) {
+            const reportedRows = rows.filter(r => r.STATUS === 'Reported');
+            
+            // 1. Office vs Rate Bar Chart
+            const officeLabels = reportedRows.map(r => r.OFFICE);
+            const rates = reportedRows.map(r => parseFloat(r['ACCOMPLISHMENT RATE'].replace('%', '')) || 0);
+
+            new Chart(document.getElementById('mainChart'), {
+                type: 'bar',
+                data: {
+                    labels: officeLabels,
+                    datasets: [{
+                        label: 'Accomplishment %',
+                        data: rates,
+                        backgroundColor: '#2563eb',
+                        borderRadius: 12,
+                        barThickness: 30
+                    }]
+                },
+                options: {
+                    indexAxis: 'y', // Gawing Horizontal para mabasa ang Office Names
+                    responsive: true,
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            // 2. Status Pie Chart
+            const reportedCount = reportedRows.length;
+            const notReportedCount = rows.length - reportedCount;
+
+            new Chart(document.getElementById('statusChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Reported', 'Pending'],
+                    datasets: [{
+                        data: [reportedCount, notReportedCount],
+                        backgroundColor: ['#10b981', '#cbd5e1'],
+                        borderWidth: 0
+                    }]
+                },
+                options: { cutout: '75%' }
+            });
+        }
+
+        initDashboard();
     </script>
 </body>
 </html>
