@@ -104,7 +104,7 @@
             <h3 class="text-purple-700 font-black text-2xl mb-2 flex items-center justify-center">
                 🏆 EARLY BIRD RANKING
             </h3>
-            <p id="ranking-subtitle" class="text-sm text-gray-500 mb-8 text-center uppercase tracking-widest">Earliest Submissions</p>
+            <p id="ranking-subtitle" class="text-sm text-gray-500 mb-8 text-center uppercase tracking-widest italic">Ranked by Earliest Date Encoded</p>
             <div class="overflow-x-auto w-full">
                 <table class="w-full text-sm text-left text-gray-600">
                     <thead class="text-xs text-gray-700 uppercase bg-gray-100">
@@ -130,9 +130,7 @@
 
         function init() {
             Papa.parse(CSV_LINK, {
-                download: true,
-                header: true,
-                skipEmptyLines: true,
+                download: true, header: true, skipEmptyLines: true,
                 complete: function(results) {
                     rawData = results.data;
                     setupYearFilter(rawData);
@@ -158,18 +156,20 @@
             const selectedYear = document.getElementById('filter-year').value;
             const selectedQuarter = document.getElementById('filter-quarter').value;
 
-            document.getElementById('ranking-subtitle').innerText = `${selectedQuarter} ${selectedYear} Earliest Submissions`;
-
-            // Filter base sa Period
+            // 1. Kuhanin muna lahat ng rows na may indicator para sa period na pinili
             const periodKPIs = rawData.filter(r => {
-                return (r.QUARTER || "").trim().toUpperCase() === selectedQuarter && 
-                       (r.YEAR || "").trim() === selectedYear;
+                const indicator = (r.INDICATOR || "").trim();
+                const q = (r.QUARTER || "").trim().toUpperCase();
+                const y = (r.YEAR || "").trim();
+                return indicator !== "" && q === selectedQuarter && y === selectedYear;
             });
 
-            // Logic: Bibilangin lang as "Valid Encoded" kung may Date
+            // 2. Kuhanin ang mga VALID ENCODED (Dapat may Date!)
             const validEncoded = periodKPIs.filter(r => {
                 const dateKey = Object.keys(r).find(key => key.toUpperCase().includes('ENCODED'));
-                return (r[dateKey] || "").trim() !== "";
+                const dateVal = (r[dateKey] || "").trim();
+                const status = (r.STATUS || "").trim();
+                return status === "Reported" && dateVal !== ""; // CONDITION: May date dapat!
             });
 
             if (periodKPIs.length > 0) {
@@ -236,7 +236,7 @@
                 type: 'bar',
                 data: {
                     labels: labels,
-                    datasets: [{ label: 'Average Rate (%)', data: dataValues, backgroundColor: '#3b82f6', borderRadius: 4 }]
+                    datasets: [{ label: 'Avg Rate (%)', data: dataValues, backgroundColor: '#3b82f6', borderRadius: 4 }]
                 },
                 options: { 
                     indexAxis: 'y', maintainAspectRatio: false,
@@ -247,11 +247,11 @@
 
             charts.pie = new Chart(document.getElementById('pieChart'), {
                 type: 'doughnut',
-                data: { labels: ['Encoded', 'Not Submitted'], datasets: [{ data: [encoded, missing], backgroundColor: ['#22c55e', '#ef4444'], borderWidth: 2, borderColor: '#ffffff' }] },
+                data: { labels: ['Encoded', 'Missing'], datasets: [{ data: [encoded, missing], backgroundColor: ['#22c55e', '#ef4444'], borderWidth: 2, borderColor: '#ffffff' }] },
                 options: { 
-                    cutout: '50%',
+                    cutout: '55%',
                     plugins: { 
-                        legend: { position: 'bottom', labels: { boxWidth: 12, padding: 20 } }, 
+                        legend: { position: 'bottom', labels: { boxWidth: 12 } }, 
                         datalabels: {
                             display: true, color: '#fff', font: { weight: 'bold', size: 14 },
                             formatter: (value, ctx) => {
@@ -288,7 +288,7 @@
                 if(index === 2) rankBadge = `<span class="px-3 py-1 bg-orange-100 text-orange-700 rounded-full font-bold text-xs">🥉 3rd</span>`;
                 html += `<tr class="bg-white border-b hover:bg-gray-50 transition"><td class="px-6 py-4">${rankBadge}</td><td class="px-6 py-4 font-bold text-blue-900">${item.office}</td><td class="px-6 py-4 font-mono text-gray-500">${dateDisplay}</td></tr>`;
             });
-            document.getElementById('ranking-body').innerHTML = html || '<tr><td colspan="3" class="px-6 py-8 text-center text-red-500 bg-red-50 rounded-xl">⚠️ No submissions recorded with timestamps.</td></tr>';
+            document.getElementById('ranking-body').innerHTML = html || '<tr><td colspan="3" class="px-6 py-8 text-center text-red-500 bg-red-50 rounded-xl">⚠️ No submissions with encoded date.</td></tr>';
         }
 
         window.onload = init;
