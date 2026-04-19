@@ -12,14 +12,31 @@
 <body class="bg-gray-50 min-h-screen pb-12">
 
     <nav class="bg-[#2d5ebd] px-6 py-3 text-white shadow-md mb-4">
-        <div class="container mx-auto flex justify-between items-center">
+        <div class="container mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
             <div>
-                <h1 class="text-xl font-bold tracking-wide">ITRMC DASHBOARD</h1>
-                <p class="text-sm text-blue-100">Accomplishment Monitoring System</p>
+                <h1 class="text-xl font-bold tracking-wide text-center md:text-left">ITRMC DASHBOARD</h1>
+                <p class="text-sm text-blue-100 text-center md:text-left">Accomplishment Monitoring System</p>
             </div>
-            <div class="text-right text-xs opacity-90">
-                Data Source: Google Sheets CSV<br>
-                Status: <span id="sync-status" class="font-bold text-yellow-300">Syncing...</span>
+            
+            <div class="flex items-center gap-3 bg-white/10 p-2 rounded-lg border border-white/20">
+                <div class="flex flex-col">
+                    <label class="text-[10px] uppercase font-bold text-blue-200">Year</label>
+                    <select id="filter-year" onchange="applyFilters()" class="bg-white text-gray-800 text-sm rounded px-2 py-1 outline-none border-none font-bold cursor-pointer">
+                        </select>
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-[10px] uppercase font-bold text-blue-200">Quarter</label>
+                    <select id="filter-quarter" onchange="applyFilters()" class="bg-white text-gray-800 text-sm rounded px-2 py-1 outline-none border-none font-bold cursor-pointer">
+                        <option value="Q1">Q1</option>
+                        <option value="Q2">Q2</option>
+                        <option value="Q3">Q3</option>
+                        <option value="Q4">Q4</option>
+                    </select>
+                </div>
+                <div class="text-right ml-2 pl-3 border-l border-white/20">
+                    <p class="text-[10px] opacity-90 uppercase font-bold text-blue-200">Status</p>
+                    <span id="sync-status" class="text-xs font-bold text-yellow-300">Syncing...</span>
+                </div>
             </div>
         </div>
     </nav>
@@ -71,8 +88,8 @@
                 </div>
             </div>
 
-            <div class="bg-white p-5 rounded-xl shadow-sm flex flex-col justify-center">
-                <h3 class="text-gray-700 font-bold mb-2 flex items-center text-sm uppercase">
+            <div class="bg-white p-5 rounded-xl shadow-sm flex flex-col justify-center text-center">
+                <h3 class="text-gray-700 font-bold mb-2 flex items-center justify-center text-sm uppercase">
                     <span class="w-3 h-3 bg-blue-500 rounded-full mr-2"></span>
                     Submission Overview
                 </h3>
@@ -81,15 +98,14 @@
                 </div>
             </div>
         </div>
-
     </div>
 
     <div class="container mx-auto px-4 mt-20">
         <div class="bg-white p-8 rounded-xl shadow-md border-t-4 border-purple-500 w-full">
-            <h3 class="text-purple-700 font-black text-2xl mb-2 flex items-center justify-center">
+            <h3 id="ranking-title" class="text-purple-700 font-black text-2xl mb-2 flex items-center justify-center">
                 🏆 EARLY BIRD RANKING
             </h3>
-            <p class="text-sm text-gray-500 mb-8 text-center">Q1 Earliest Submissions - ITRMC Divisions</p>
+            <p id="ranking-subtitle" class="text-sm text-gray-500 mb-8 text-center uppercase tracking-widest">Q1 2026 Earliest Submissions</p>
             <div class="overflow-x-auto w-full">
                 <table class="w-full text-sm text-left text-gray-600">
                     <thead class="text-xs text-gray-700 uppercase bg-gray-100">
@@ -106,14 +122,11 @@
     </div>
 
     <script>
-        try {
-            Chart.register(ChartDataLabels);
-        } catch(e) {
-            console.error("Error loading ChartJS Plugins", e);
-        }
+        try { Chart.register(ChartDataLabels); } catch(e) { console.error(e); }
 
         const CSV_LINK = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSk0F8K5bfpkZ6Q8JUoDBZ68NqTfiW-r8F9s165g7inDSvnVwrQNBU8Dlw2WPOPeqzVCxSl3Emuix4E/pub?gid=890592255&single=true&output=csv&v=' + Date.now();
 
+        let rawData = [];
         let charts = {};
 
         function init() {
@@ -122,34 +135,66 @@
                 header: true,
                 skipEmptyLines: true,
                 complete: function(results) {
-                    try {
-                        const data = results.data;
-                        const validRows = data.filter(r => {
-                            const q = (r.QUARTER || "").trim().toUpperCase();
-                            const y = (r.YEAR || "").trim();
-                            const rate = (r['ACCOMPLISHMENT RATE'] || "").trim();
-                            return q === 'Q1' && y === '2026' && rate !== "";
-                        });
-
-                        if (validRows.length > 0) {
-                            updateDashboard(validRows);
-                            buildRanking(validRows);
-                            document.getElementById('sync-status').innerText = 'Data Loaded';
-                            document.getElementById('sync-status').className = 'font-bold text-green-300';
-                        } else {
-                            document.getElementById('sync-status').innerText = 'Error: No Data Match';
-                            document.getElementById('sync-status').className = 'font-bold text-red-400';
-                        }
-                    } catch(err) {
-                        console.error("Dashboard Logic Error:", err);
-                        document.getElementById('sync-status').innerText = 'ERROR: CODE CRASHED';
-                    }
-                },
-                error: function(err) {
-                    console.error("Google Sheets Error:", err);
-                    document.getElementById('sync-status').innerText = 'ERROR: CANNOT FETCH DATA';
+                    rawData = results.data;
+                    setupYearFilter(rawData); // Alamin kung anong years ang meron sa sheet
+                    applyFilters(); // Unang load
                 }
             });
+        }
+
+        function setupYearFilter(data) {
+            const years = [...new Set(data.map(r => (r.YEAR || "").trim()).filter(y => y !== ""))].sort().reverse();
+            const yearSelect = document.getElementById('filter-year');
+            
+            // Burahin muna kung may laman
+            yearSelect.innerHTML = '';
+            
+            if(years.length === 0) {
+                const opt = document.createElement('option');
+                opt.value = "2026"; opt.text = "2026";
+                yearSelect.add(opt);
+            } else {
+                years.forEach(y => {
+                    const opt = document.createElement('option');
+                    opt.value = y; opt.text = y;
+                    yearSelect.add(opt);
+                });
+            }
+        }
+
+        function applyFilters() {
+            const selectedYear = document.getElementById('filter-year').value;
+            const selectedQuarter = document.getElementById('filter-quarter').value;
+
+            // Subtitle update
+            document.getElementById('ranking-subtitle').innerText = `${selectedQuarter} ${selectedYear} Earliest Submissions`;
+
+            const filteredData = rawData.filter(r => {
+                const q = (r.QUARTER || "").trim().toUpperCase();
+                const y = (r.YEAR || "").trim();
+                const rate = (r['ACCOMPLISHMENT RATE'] || "").trim();
+                return q === selectedQuarter && y === selectedYear && rate !== "";
+            });
+
+            if (filteredData.length > 0) {
+                updateDashboard(filteredData);
+                buildRanking(filteredData);
+                document.getElementById('sync-status').innerText = 'Data Loaded';
+                document.getElementById('sync-status').className = 'font-bold text-green-300';
+            } else {
+                clearDashboard();
+                document.getElementById('sync-status').innerText = 'No Data Found';
+                document.getElementById('sync-status').className = 'font-bold text-red-400';
+            }
+        }
+
+        function clearDashboard() {
+            document.getElementById('stat-avg').innerText = '0.00%';
+            document.getElementById('stat-comp').innerText = '0.00%';
+            ['total', 'encoded', 'ontime', 'late', 'missing'].forEach(id => document.getElementById('stat-'+id).innerText = '0');
+            if(charts.bar) charts.bar.destroy();
+            if(charts.pie) charts.pie.destroy();
+            document.getElementById('ranking-body').innerHTML = '<tr><td colspan="3" class="px-6 py-8 text-center text-red-500 bg-red-50 rounded-xl">⚠️ Walang data para sa napiling period.</td></tr>';
         }
 
         function updateDashboard(rows) {
@@ -165,8 +210,8 @@
                 totalRateSum += rate;
             });
             
-            const avgAccomplishment = total > 0 ? (totalRateSum / total).toFixed(2) : "0.00";
-            const compliance = total > 0 ? ((encoded / total) * 100).toFixed(2) : "0.00";
+            const avgAccomplishment = (totalRateSum / total).toFixed(2);
+            const compliance = ((encoded / total) * 100).toFixed(2);
 
             document.getElementById('stat-avg').innerText = avgAccomplishment + '%';
             document.getElementById('stat-comp').innerText = compliance + '%';
@@ -181,73 +226,42 @@
                 const office = (r.OFFICE || "Unknown").trim();
                 const rate = parseFloat((r['ACCOMPLISHMENT RATE'] || "0").replace('%', '')) || 0;
                 if (!grouped[office]) grouped[office] = { sum: 0, count: 0 };
-                grouped[office].sum += rate;
-                grouped[office].count += 1;
+                grouped[office].sum += rate; grouped[office].count += 1;
             });
 
-            const labels = Object.keys(grouped);
-            const dataValues = labels.map(l => (grouped[l].sum / grouped[l].count).toFixed(2));
-
-            renderCharts(labels, dataValues, encoded, missing);
+            renderCharts(Object.keys(grouped), Object.keys(grouped).map(l => (grouped[l].sum / grouped[l].count).toFixed(2)), encoded, missing);
         }
 
         function renderCharts(labels, dataValues, encoded, missing) {
             if(charts.bar) charts.bar.destroy();
             if(charts.pie) charts.pie.destroy();
 
-            // Bar Chart
             charts.bar = new Chart(document.getElementById('barChart'), {
                 type: 'bar',
                 data: {
                     labels: labels,
-                    datasets: [{
-                        label: 'Average Rate (%)',
-                        data: dataValues,
-                        backgroundColor: '#3b82f6', 
-                        borderRadius: 4
-                    }]
+                    datasets: [{ label: 'Average Rate (%)', data: dataValues, backgroundColor: '#3b82f6', borderRadius: 4 }]
                 },
                 options: { 
-                    indexAxis: 'y', 
-                    maintainAspectRatio: false,
-                    plugins: { 
-                        legend: { display: false },
-                        datalabels: {
-                            anchor: 'end', align: 'right', color: '#1e3a8a',
-                            font: { weight: 'bold', size: 12 },
-                            formatter: function(value) { return value + '%'; }
-                        }
-                    },
+                    indexAxis: 'y', maintainAspectRatio: false,
+                    plugins: { legend: { display: false }, datalabels: { anchor: 'end', align: 'right', color: '#1e3a8a', font: { weight: 'bold', size: 12 }, formatter: v => v + '%' } },
                     scales: { x: { beginAtZero: true, grace: '15%' } }
                 }
             });
 
-            // Pie Chart (With Labels Enabled)
             charts.pie = new Chart(document.getElementById('pieChart'), {
                 type: 'doughnut',
-                data: {
-                    labels: ['Encoded', 'Not Submitted'],
-                    datasets: [{
-                        data: [encoded, missing],
-                        backgroundColor: ['#22c55e', '#ef4444'],
-                        borderWidth: 2,
-                        borderColor: '#ffffff'
-                    }]
-                },
+                data: { labels: ['Encoded', 'Not Submitted'], datasets: [{ data: [encoded, missing], backgroundColor: ['#22c55e', '#ef4444'], borderWidth: 2, borderColor: '#ffffff' }] },
                 options: { 
                     cutout: '50%',
                     plugins: { 
                         legend: { position: 'bottom', labels: { boxWidth: 12, padding: 20 } }, 
                         datalabels: {
-                            display: true,
-                            color: '#fff',
-                            font: { weight: 'bold', size: 14 },
+                            display: true, color: '#fff', font: { weight: 'bold', size: 14 },
                             formatter: (value, ctx) => {
                                 let sum = 0;
-                                let dataArr = ctx.chart.data.datasets[0].data;
-                                dataArr.map(data => { sum += data; });
-                                let percentage = (value * 100 / sum).toFixed(0) + "%";
-                                return percentage === "0%" ? null : percentage; // Wag ipakita kung 0%
+                                ctx.chart.data.datasets[0].data.map(d => sum += d);
+                                return (value * 100 / sum).toFixed(0) + "%";
                             }
                         }
                     } 
@@ -257,40 +271,31 @@
 
         function buildRanking(rows) {
             const officeDates = {};
-            let dateFound = false;
             rows.forEach(r => {
                 const office = (r.OFFICE || "Unknown").trim();
                 const status = (r.STATUS || "").trim();
                 const dateKey = Object.keys(r).find(key => key.toUpperCase().includes('ENCODED'));
-                const dateStr = dateKey ? (r[dateKey] || "").trim() : "";
+                const dateStr = (r[dateKey] || "").trim();
                 if (dateStr && status === 'Reported') {
                     const dateObj = new Date(dateStr);
                     if (!isNaN(dateObj)) {
-                        dateFound = true;
-                        if (!officeDates[office] || dateObj < officeDates[office]) {
-                            officeDates[office] = dateObj;
-                        }
+                        if (!officeDates[office] || dateObj < officeDates[office]) officeDates[office] = dateObj;
                     }
                 }
             });
 
-            const rankedOffices = Object.keys(officeDates).map(office => {
-                return { office: office, date: officeDates[office] };
-            }).sort((a, b) => a.date - b.date);
+            const rankedOffices = Object.keys(officeDates).map(o => ({ office: o, date: officeDates[o] })).sort((a, b) => a.date - b.date);
 
             let html = '';
             rankedOffices.forEach((item, index) => {
-                const dateDisplay = item.date.toLocaleString('en-US', { 
-                    month: 'short', day: 'numeric', year: 'numeric', 
-                    hour: 'numeric', minute: '2-digit', hour12: true 
-                });
+                const dateDisplay = item.date.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true });
                 let rankBadge = `<span class="font-bold text-gray-500">${index + 1}</span>`;
                 if(index === 0) rankBadge = `<span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full font-bold text-xs">🥇 1st</span>`;
                 if(index === 1) rankBadge = `<span class="px-3 py-1 bg-gray-200 text-gray-700 rounded-full font-bold text-xs">🥈 2nd</span>`;
                 if(index === 2) rankBadge = `<span class="px-3 py-1 bg-orange-100 text-orange-700 rounded-full font-bold text-xs">🥉 3rd</span>`;
                 html += `<tr class="bg-white border-b hover:bg-gray-50 transition"><td class="px-6 py-4">${rankBadge}</td><td class="px-6 py-4 font-bold text-blue-900">${item.office}</td><td class="px-6 py-4 font-mono text-gray-500">${dateDisplay}</td></tr>`;
             });
-            document.getElementById('ranking-body').innerHTML = html || '<tr><td colspan="3" class="px-6 py-8 text-center text-red-500 bg-red-50 rounded-xl">⚠️ Wala pang nare-record na submission.</td></tr>';
+            document.getElementById('ranking-body').innerHTML = html || '<tr><td colspan="3" class="px-6 py-8 text-center text-red-500 bg-red-50 rounded-xl">⚠️ Walang submission time para sa period na ito.</td></tr>';
         }
 
         window.onload = init;
