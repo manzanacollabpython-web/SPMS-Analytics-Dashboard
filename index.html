@@ -45,8 +45,8 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div class="bg-white p-6 rounded-lg shadow-sm">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+            <div class="bg-white p-6 rounded-lg shadow-sm lg:col-span-2">
                 <h3 class="text-gray-700 font-bold mb-6 flex items-center text-sm">
                     <span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
                     Accomplishment Rate per Office (%)
@@ -66,12 +66,34 @@
                 </div>
             </div>
         </div>
+
+        <div class="bg-white p-6 rounded-lg shadow-sm border-t-4 border-purple-500">
+            <h3 class="text-purple-700 font-bold mb-4 flex items-center">
+                🏆 Early Bird Ranking (Earliest Submissions)
+            </h3>
+            <p class="text-xs text-gray-500 mb-4">Ito ang listahan ng mga Division base sa kung sino ang pinakaunang nag-encode ng kanilang Accomplishment Report para sa Q1.</p>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-gray-600">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 rounded-tl-lg">Rank</th>
+                            <th class="px-6 py-3">Office / Division</th>
+                            <th class="px-6 py-3 rounded-tr-lg">Date & Time Encoded</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ranking-body">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+
     </div>
 
     <script>
-        // I-REGISTER ANG PLUGIN PARA SIGURADONG GAGANA
         Chart.register(ChartDataLabels);
 
+        // Nilagyan na natin ng cache buster para laging fresh ang data
         const CSV_LINK = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSk0F8K5bfpkZ6Q8JUoDBZ68NqTfiW-r8F9s165g7inDSvnVwrQNBU8Dlw2WPOPeqzVCxSl3Emuix4E/pub?gid=890592255&single=true&output=csv&cache=' + Date.now();
 
         let charts = {};
@@ -94,6 +116,8 @@
 
                     if (validRows.length > 0) {
                         updateDashboard(validRows);
+                        buildRanking(validRows); // TINAWAG NATIN ANG RANKING FUNCTION
+                        
                         document.getElementById('sync-status').innerText = 'Data Loaded';
                         document.getElementById('sync-status').className = 'font-bold text-green-300';
                     } else {
@@ -134,7 +158,6 @@
             if(charts.bar) charts.bar.destroy();
             if(charts.pie) charts.pie.destroy();
 
-            // Bar Chart
             charts.bar = new Chart(document.getElementById('barChart'), {
                 type: 'bar',
                 data: {
@@ -151,27 +174,16 @@
                     maintainAspectRatio: false,
                     plugins: { 
                         legend: { display: false },
-                        // DITO NAKA-SET YUNG LABEL SA DULO NG BAR
                         datalabels: {
-                            anchor: 'end',
-                            align: 'right', // Para sa labas ng mismong tip ng bar
-                            color: '#1e3a8a',
+                            anchor: 'end', align: 'right', color: '#1e3a8a',
                             font: { weight: 'bold', size: 12 },
-                            formatter: function(value) {
-                                return value + '%'; // Dinadagdag ang percent sign
-                            }
+                            formatter: function(value) { return value + '%'; }
                         }
                     },
-                    scales: { 
-                        x: { 
-                            beginAtZero: true,
-                            grace: '20%' // Nagbibigay ng extra space sa kanan para di maputol yung percentage number
-                        } 
-                    }
+                    scales: { x: { beginAtZero: true, grace: '20%' } }
                 }
             });
 
-            // Pie Chart
             charts.pie = new Chart(document.getElementById('pieChart'), {
                 type: 'doughnut',
                 data: {
@@ -182,15 +194,71 @@
                         borderWidth: 0
                     }]
                 },
-                options: { 
-                    cutout: '75%', 
-                    plugins: { 
-                        legend: { position: 'bottom' },
-                        // Pinatay ang datalabels sa pie chart para hindi makalat tingnan
-                        datalabels: { display: false } 
-                    } 
+                options: { cutout: '75%', plugins: { legend: { position: 'bottom' }, datalabels: { display: false } } }
+            });
+        }
+
+        // --- ANG BAGONG RANKING LOGIC ---
+        function buildRanking(rows) {
+            const officeDates = {};
+
+            // 1. Hanapin ang pinakaunang date na nag-encode bawat Office
+            rows.forEach(r => {
+                const office = (r.OFFICE || "Unknown").trim();
+                const status = (r.STATUS || "").trim();
+                
+                // Susubukan hanapin kung ENCODED DATE ba o TIMESTAMP ang gamit mo sa Sheet
+                const dateStr = (r['ENCODED DATE'] || r['TIMESTAMP'] || "").trim();
+
+                if (dateStr && status === 'Reported') {
+                    const dateObj = new Date(dateStr);
+                    
+                    if (!isNaN(dateObj)) {
+                        // I-save ang date kung ito yung unang beses nakita, O KUNG mas maaga ito sa nakasave
+                        if (!officeDates[office] || dateObj < officeDates[office]) {
+                            officeDates[office] = dateObj;
+                        }
+                    }
                 }
             });
+
+            // 2. I-sort mula Rank 1 (pinakamaaga) hanggang dulo
+            const rankedOffices = Object.keys(officeDates).map(office => {
+                return { office: office, date: officeDates[office] };
+            }).sort((a, b) => a.date - b.date);
+
+            // 3. I-drawing sa Table
+            let html = '';
+            rankedOffices.forEach((item, index) => {
+                // Pagandahin ang display ng date (e.g., "Jan 15, 2026, 10:30 AM")
+                const dateDisplay = item.date.toLocaleString('en-US', { 
+                    month: 'short', day: 'numeric', year: 'numeric', 
+                    hour: 'numeric', minute: '2-digit' 
+                });
+
+                // Lagyan ng medalya yung Top 3
+                let rankBadge = `<span class="font-bold text-gray-500">${index + 1}</span>`;
+                if(index === 0) rankBadge = `<span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full font-bold text-xs">🥇 1st</span>`;
+                if(index === 1) rankBadge = `<span class="px-3 py-1 bg-gray-200 text-gray-700 rounded-full font-bold text-xs">🥈 2nd</span>`;
+                if(index === 2) rankBadge = `<span class="px-3 py-1 bg-orange-100 text-orange-700 rounded-full font-bold text-xs">🥉 3rd</span>`;
+
+                html += `
+                    <tr class="bg-white border-b hover:bg-gray-50 transition">
+                        <td class="px-6 py-4">${rankBadge}</td>
+                        <td class="px-6 py-4 font-bold text-blue-900">${item.office}</td>
+                        <td class="px-6 py-4 font-mono text-xs">${dateDisplay}</td>
+                    </tr>
+                `;
+            });
+
+            // Kung walang mabasang date (baka mali ang column name)
+            if(html === '') {
+                html = `<tr><td colspan="3" class="px-6 py-8 text-center text-red-500 bg-red-50 rounded-lg">
+                    ⚠️ Hindi makita ang mga petsa. Siguraduhin na may column na pinangalanang <strong>ENCODED DATE</strong> at may laman itong date at oras.
+                </td></tr>`;
+            }
+
+            document.getElementById('ranking-body').innerHTML = html;
         }
 
         window.onload = init;
