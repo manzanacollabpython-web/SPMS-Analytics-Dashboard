@@ -14,8 +14,8 @@
     <nav class="bg-[#2d5ebd] px-6 py-3 text-white shadow-md mb-4">
         <div class="container mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
             <div>
-                <h1 class="text-xl font-bold tracking-wide text-center md:text-left">ITRMC DASHBOARD</h1>
-                <p class="text-sm text-blue-100 text-center md:text-left">Accomplishment Monitoring System</p>
+                <h1 class="text-xl font-bold tracking-wide">ITRMC DASHBOARD</h1>
+                <p class="text-sm text-blue-100">Accomplishment Monitoring System</p>
             </div>
             
             <div class="flex items-center gap-3 bg-white/10 p-2 rounded-lg border border-white/20">
@@ -42,7 +42,6 @@
     </nav>
 
     <div class="container mx-auto px-4 min-h-[85vh] flex flex-col">
-        
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
             <div class="bg-white py-4 px-6 rounded-xl shadow-sm border-b-4 border-blue-600 text-center">
                 <p class="text-gray-500 text-sm font-bold uppercase mb-1">Average Accomplishment</p>
@@ -102,10 +101,10 @@
 
     <div class="container mx-auto px-4 mt-20">
         <div class="bg-white p-8 rounded-xl shadow-md border-t-4 border-purple-500 w-full">
-            <h3 id="ranking-title" class="text-purple-700 font-black text-2xl mb-2 flex items-center justify-center">
+            <h3 class="text-purple-700 font-black text-2xl mb-2 flex items-center justify-center">
                 🏆 EARLY BIRD RANKING
             </h3>
-            <p id="ranking-subtitle" class="text-sm text-gray-500 mb-8 text-center uppercase tracking-widest">Q1 2026 Earliest Submissions</p>
+            <p id="ranking-subtitle" class="text-sm text-gray-500 mb-8 text-center uppercase tracking-widest">Earliest Submissions</p>
             <div class="overflow-x-auto w-full">
                 <table class="w-full text-sm text-left text-gray-600">
                     <thead class="text-xs text-gray-700 uppercase bg-gray-100">
@@ -161,26 +160,21 @@
 
             document.getElementById('ranking-subtitle').innerText = `${selectedQuarter} ${selectedYear} Earliest Submissions`;
 
-            // STEP 1: Lahat ng KPI para sa napiling Year at Quarter
+            // Filter base sa Period
             const periodKPIs = rawData.filter(r => {
-                const q = (r.QUARTER || "").trim().toUpperCase();
-                const y = (r.YEAR || "").trim();
-                return q === selectedQuarter && y === selectedYear;
+                return (r.QUARTER || "").trim().toUpperCase() === selectedQuarter && 
+                       (r.YEAR || "").trim() === selectedYear;
             });
 
-            // STEP 2: Logic na hiningi mo boss - bibilangin lang na "Encoded" kung may Date
-            const encodedKPIs = periodKPIs.filter(r => {
-                const status = (r.STATUS || "").trim();
+            // Logic: Bibilangin lang as "Valid Encoded" kung may Date
+            const validEncoded = periodKPIs.filter(r => {
                 const dateKey = Object.keys(r).find(key => key.toUpperCase().includes('ENCODED'));
-                const dateVal = (r[dateKey] || "").trim();
-                
-                // Dapat "Reported" ang status AT hindi blangko ang date
-                return status === 'Reported' && dateVal !== "";
+                return (r[dateKey] || "").trim() !== "";
             });
 
             if (periodKPIs.length > 0) {
-                updateDashboard(periodKPIs, encodedKPIs);
-                buildRanking(encodedKPIs);
+                updateDashboard(periodKPIs, validEncoded);
+                buildRanking(validEncoded);
                 document.getElementById('sync-status').innerText = 'Data Loaded';
                 document.getElementById('sync-status').className = 'font-bold text-green-300';
             } else {
@@ -196,7 +190,7 @@
             ['total', 'encoded', 'ontime', 'late', 'missing'].forEach(id => document.getElementById('stat-'+id).innerText = '0');
             if(charts.bar) charts.bar.destroy();
             if(charts.pie) charts.pie.destroy();
-            document.getElementById('ranking-body').innerHTML = '<tr><td colspan="3" class="px-6 py-8 text-center text-red-500 bg-red-50 rounded-xl">⚠️ Walang data para sa period na ito.</td></tr>';
+            document.getElementById('ranking-body').innerHTML = '<tr><td colspan="3" class="px-6 py-8 text-center text-red-500 bg-red-50 rounded-xl">⚠️ No data found.</td></tr>';
         }
 
         function updateDashboard(allRows, encodedRows) {
@@ -212,7 +206,6 @@
                 totalRateSum += rate;
             });
             
-            // Average ay base lang sa mga validly encoded
             const avgAccomplishment = encodedCount > 0 ? (totalRateSum / encodedCount).toFixed(2) : "0.00";
             const compliance = total > 0 ? ((encodedCount / total) * 100).toFixed(2) : "0.00";
 
@@ -279,7 +272,7 @@
                 const dateKey = Object.keys(r).find(key => key.toUpperCase().includes('ENCODED'));
                 const dateStr = (r[dateKey] || "").trim();
                 const dateObj = new Date(dateStr);
-                if (!isNaN(dateObj)) {
+                if (!isNaN(dateObj.getTime())) {
                     if (!officeDates[office] || dateObj < officeDates[office]) officeDates[office] = dateObj;
                 }
             });
@@ -295,7 +288,7 @@
                 if(index === 2) rankBadge = `<span class="px-3 py-1 bg-orange-100 text-orange-700 rounded-full font-bold text-xs">🥉 3rd</span>`;
                 html += `<tr class="bg-white border-b hover:bg-gray-50 transition"><td class="px-6 py-4">${rankBadge}</td><td class="px-6 py-4 font-bold text-blue-900">${item.office}</td><td class="px-6 py-4 font-mono text-gray-500">${dateDisplay}</td></tr>`;
             });
-            document.getElementById('ranking-body').innerHTML = html || '<tr><td colspan="3" class="px-6 py-8 text-center text-red-500 bg-red-50 rounded-xl">⚠️ Walang submission time para sa period na ito.</td></tr>';
+            document.getElementById('ranking-body').innerHTML = html || '<tr><td colspan="3" class="px-6 py-8 text-center text-red-500 bg-red-50 rounded-xl">⚠️ No submissions recorded with timestamps.</td></tr>';
         }
 
         window.onload = init;
