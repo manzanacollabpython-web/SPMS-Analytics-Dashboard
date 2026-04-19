@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ITRMC DASHBOARD</title>
+    <title>ITRMC DASHBOARD - Q1 2026</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
@@ -17,7 +17,7 @@
         <div class="container mx-auto flex justify-between items-center">
             <div>
                 <h1 class="text-2xl font-bold tracking-tight uppercase">ITRMC DASHBOARD</h1>
-                <p class="text-blue-100 text-sm">Accomplishment Monitoring System</p>
+                <p class="text-blue-100 text-sm">Accomplishment Monitoring | FY 2026 - Q1</p>
             </div>
             <div class="text-right text-xs opacity-80">
                 Status: <span id="sync-status" class="font-bold">INITIALIZING...</span>
@@ -26,22 +26,23 @@
     </nav>
 
     <div class="container mx-auto px-4">
+        
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            <div class="bg-white p-5 rounded-xl shadow-sm border-b-4 border-blue-500">
-                <p class="text-gray-500 text-xs font-bold uppercase">Total Indicators</p>
-                <h2 id="stat-total" class="text-3xl font-black text-gray-800 tracking-tighter">0</h2>
+            <div class="bg-white p-5 rounded-xl shadow-sm border-b-4 border-blue-500 text-center">
+                <p class="text-gray-500 text-xs font-bold uppercase">Total Indicators (Q1)</p>
+                <h2 id="stat-total" class="text-4xl font-black text-gray-800 tracking-tighter">0</h2>
             </div>
-            <div class="bg-white p-5 rounded-xl shadow-sm border-b-4 border-green-500">
+            <div class="bg-white p-5 rounded-xl shadow-sm border-b-4 border-green-500 text-center">
                 <p class="text-gray-500 text-xs font-bold uppercase">Reported</p>
-                <h2 id="stat-reported" class="text-3xl font-black text-green-600 tracking-tighter">0</h2>
+                <h2 id="stat-reported" class="text-4xl font-black text-green-600 tracking-tighter">0</h2>
             </div>
-            <div class="bg-white p-5 rounded-xl shadow-sm border-b-4 border-yellow-500">
+            <div class="bg-white p-5 rounded-xl shadow-sm border-b-4 border-yellow-500 text-center">
                 <p class="text-gray-500 text-xs font-bold uppercase">On Time</p>
-                <h2 id="stat-ontime" class="text-3xl font-black text-yellow-600 tracking-tighter">0</h2>
+                <h2 id="stat-ontime" class="text-4xl font-black text-yellow-600 tracking-tighter">0</h2>
             </div>
-            <div class="bg-white p-5 rounded-xl shadow-sm border-b-4 border-red-500">
+            <div class="bg-white p-5 rounded-xl shadow-sm border-b-4 border-red-500 text-center">
                 <p class="text-gray-500 text-xs font-bold uppercase">Pending</p>
-                <h2 id="stat-pending" class="text-3xl font-black text-red-600 tracking-tighter">0</h2>
+                <h2 id="stat-pending" class="text-4xl font-black text-red-600 tracking-tighter">0</h2>
             </div>
         </div>
 
@@ -49,9 +50,9 @@
             <div class="bg-white p-6 rounded-2xl shadow-sm">
                 <h3 class="text-gray-700 font-bold mb-4 flex items-center italic">
                     <span class="w-2 h-2 bg-blue-600 rounded-full mr-2"></span>
-                    Average Accomplishment per Division (%)
+                    Avg Accomplishment per Division (%)
                 </h3>
-                <div class="relative" style="height:350px">
+                <div class="relative" style="height:400px">
                     <canvas id="barChart"></canvas>
                 </div>
             </div>
@@ -59,9 +60,9 @@
             <div class="bg-white p-6 rounded-2xl shadow-sm">
                 <h3 class="text-gray-700 font-bold mb-4 flex items-center italic">
                     <span class="w-2 h-2 bg-blue-600 rounded-full mr-2"></span>
-                    Submission Overview
+                    Submission Overview (Q1)
                 </h3>
-                <div class="max-w-[280px] mx-auto">
+                <div class="max-w-[300px] mx-auto mt-10">
                     <canvas id="pieChart"></canvas>
                 </div>
             </div>
@@ -69,8 +70,10 @@
     </div>
 
     <script>
-        // Idinagdag natin ang 'cache-buster' (Date.now) para laging fresh ang data at hindi ma-stuck sa "Connecting"
         const CSV_LINK = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSk0F8K5bfpkZ6Q8JUoDBZ68NqTfiW-r8F9s165g7inDSvnVwrQNBU8Dlw2WPOPeqzVCxSl3Emuix4E/pub?gid=890592255&single=true&output=csv&cache=' + Date.now();
+
+        let barChartInstance = null;
+        let pieChartInstance = null;
 
         function loadData() {
             document.getElementById('sync-status').innerText = 'LOADING...';
@@ -80,20 +83,24 @@
                 header: true,
                 skipEmptyLines: true,
                 complete: function(results) {
-                    console.log("Data loaded:", results.data);
-                    const rows = results.data.filter(r => r.OFFICE && r.OFFICE.trim() !== "");
+                    // Filter: Kunin lang ang Q1 at YEAR 2026 para lumabas ang 14 indicators
+                    const allRows = results.data;
+                    const q1Rows = allRows.filter(r => 
+                        r.QUARTER === 'Q1' && 
+                        r.YEAR === '2026' &&
+                        r.OFFICE && r.OFFICE.trim() !== ""
+                    );
                     
-                    if (rows.length > 0) {
-                        updateDashboard(rows);
+                    if (q1Rows.length > 0) {
+                        updateDashboard(q1Rows);
                         document.getElementById('sync-status').innerText = 'LIVE';
                         document.getElementById('sync-status').className = 'text-green-400 font-bold';
                     } else {
-                        document.getElementById('sync-status').innerText = 'EMPTY DATA';
+                        document.getElementById('sync-status').innerText = 'NO Q1 2026 DATA FOUND';
                     }
                 },
                 error: function(err) {
-                    console.error("Error:", err);
-                    document.getElementById('sync-status').innerText = 'CONNECTION ERROR';
+                    document.getElementById('sync-status').innerText = 'OFFLINE / ERROR';
                 }
             });
         }
@@ -104,12 +111,13 @@
             const reportedCount = reportedRows.length;
             const onTimeCount = rows.filter(r => r['WITHIN DEADLINE'] === 'On Time').length;
 
+            // Stats Update
             document.getElementById('stat-total').innerText = totalCount;
             document.getElementById('stat-reported').innerText = reportedCount;
             document.getElementById('stat-ontime').innerText = onTimeCount;
             document.getElementById('stat-pending').innerText = totalCount - reportedCount;
 
-            // Grouping Logic
+            // Grouping Logic for Average per Division
             const grouped = {};
             reportedRows.forEach(r => {
                 const office = r.OFFICE.trim();
@@ -124,27 +132,30 @@
             const labels = Object.keys(grouped);
             const averages = labels.map(l => (grouped[l].sum / grouped[l].count).toFixed(1));
 
-            // Bar Chart
-            new Chart(document.getElementById('barChart'), {
+            // Render/Update Bar Chart
+            if(barChartInstance) barChartInstance.destroy();
+            barChartInstance = new Chart(document.getElementById('barChart'), {
                 type: 'bar',
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: 'Avg Rate %',
+                        label: 'Avg Accomplishment %',
                         data: averages,
-                        backgroundColor: '#2563eb',
-                        borderRadius: 6
+                        backgroundColor: '#1e40af',
+                        borderRadius: 8
                     }]
                 },
                 options: { 
                     indexAxis: 'y', 
                     maintainAspectRatio: false,
-                    plugins: { legend: { display: false } }
+                    plugins: { legend: { display: false } },
+                    scales: { x: { beginAtZero: true, max: 100 } }
                 }
             });
 
-            // Pie Chart
-            new Chart(document.getElementById('pieChart'), {
+            // Render/Update Pie Chart
+            if(pieChartInstance) pieChartInstance.destroy();
+            pieChartInstance = new Chart(document.getElementById('pieChart'), {
                 type: 'doughnut',
                 data: {
                     labels: ['Reported', 'Pending'],
@@ -158,7 +169,6 @@
             });
         }
 
-        // Start loading
         window.onload = loadData;
     </script>
 </body>
