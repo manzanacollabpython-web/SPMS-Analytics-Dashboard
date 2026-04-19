@@ -21,8 +21,7 @@
             <div class="flex items-center gap-3 bg-white/10 p-2 rounded-lg border border-white/20">
                 <div class="flex flex-col">
                     <label class="text-[10px] uppercase font-bold text-blue-200">Year</label>
-                    <select id="filter-year" onchange="applyFilters()" class="bg-white text-gray-800 text-sm rounded px-2 py-1 outline-none border-none font-bold cursor-pointer">
-                    </select>
+                    <select id="filter-year" onchange="applyFilters()" class="bg-white text-gray-800 text-sm rounded px-2 py-1 outline-none border-none font-bold cursor-pointer"></select>
                 </div>
                 <div class="flex flex-col">
                     <label class="text-[10px] uppercase font-bold text-blue-200">Quarter</label>
@@ -86,7 +85,6 @@
                     <canvas id="barChart"></canvas>
                 </div>
             </div>
-
             <div class="bg-white p-5 rounded-xl shadow-sm flex flex-col justify-center text-center">
                 <h3 class="text-gray-700 font-bold mb-2 flex items-center justify-center text-sm uppercase">
                     <span class="w-3 h-3 bg-blue-500 rounded-full mr-2"></span>
@@ -121,7 +119,7 @@
     <script>
         try { Chart.register(ChartDataLabels); } catch(e) { console.error(e); }
 
-        const CSV_LINK = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSk0F8K5bfpkZ6Q8JUoDBZ68NqTfiW-r8F9s165g7inDSvnVwrQNBU8Dlw2WPOPeqzVCxSl3Emuix4E/pub?gid=890592255&single=true&output=csv&v=' + Date.now();
+        const CSV_LINK = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSk0F8K5bfpkZ6Q8JUoDBZ68NqTfiW-r8F9s165g7inDSvnVwrQNBU8Dlw2WPOPeqzVCxSl3Emuix4E/pub?gid=890592255&single=true&output=csv&v=' + new Date().getTime();
 
         let rawData = [];
         let charts = {};
@@ -154,20 +152,16 @@
             const selectedYear = document.getElementById('filter-year').value;
             const selectedQuarter = document.getElementById('filter-quarter').value;
 
-            // 1. FILTER: Ito ang nag-de-determine ng "Total KPI". 
-            // Dapat hindi blangko ang "ACCOMPLISHMENT RATE" para mabilang na KPI.
+            // Kunin lahat ng valid items para sa period
             const periodKPIs = rawData.filter(r => {
                 const accRate = (r['ACCOMPLISHMENT RATE'] || "").trim();
-                const q = (r.QUARTER || "").trim().toUpperCase();
-                const y = (r.YEAR || "").trim();
-                return accRate !== "" && q === selectedQuarter && y === selectedYear;
+                return accRate !== "" && (r.QUARTER || "").trim().toUpperCase() === selectedQuarter && (r.YEAR || "").trim() === selectedYear;
             });
 
-            // 2. LOGIC: Encoded KPI - dapat may DATE
+            // Encoded: Dapat may Date
             const validEncoded = periodKPIs.filter(r => {
                 const dateKey = Object.keys(r).find(key => key.toUpperCase().includes('ENCODED'));
-                const dateVal = (r[dateKey] || "").trim();
-                return dateVal !== ""; 
+                return (r[dateKey] || "").trim() !== "";
             });
 
             if (periodKPIs.length > 0) {
@@ -188,11 +182,10 @@
             ['total', 'encoded', 'ontime', 'late', 'missing'].forEach(id => document.getElementById('stat-'+id).innerText = '0');
             if(charts.bar) charts.bar.destroy();
             if(charts.pie) charts.pie.destroy();
-            document.getElementById('ranking-body').innerHTML = '<tr><td colspan="3" class="px-6 py-8 text-center text-red-500 bg-red-50 rounded-xl">⚠️ No data.</td></tr>';
         }
 
         function updateDashboard(allRows, encodedRows) {
-            const total = allRows.length; 
+            const total = allRows.length;
             const encodedCount = encodedRows.length;
             const onTime = encodedRows.filter(r => (r['WITHIN DEADLINE'] || "").trim() === 'On Time').length;
             const late = encodedRows.filter(r => (r['WITHIN DEADLINE'] || "").trim() === 'Late').length;
@@ -200,8 +193,7 @@
 
             let totalRateSum = 0;
             encodedRows.forEach(r => {
-                const rateStr = (r['ACCOMPLISHMENT RATE'] || "0").replace('%', '').trim();
-                const rate = parseFloat(rateStr) || 0;
+                const rate = parseFloat((r['ACCOMPLISHMENT RATE'] || "0").replace('%', '')) || 0;
                 totalRateSum += rate;
             });
             
@@ -216,13 +208,24 @@
             document.getElementById('stat-late').innerText = late;
             document.getElementById('stat-missing').innerText = missing;
 
+            // BAR GRAPH LOGIC: Ipakita lahat ng Office sa AllRows, pero 0 kung wala sa encodedRows
             const grouped = {};
-            encodedRows.forEach(r => {
+            allRows.forEach(r => {
                 const office = (r.OFFICE || "Unknown").trim();
-                const rateStr = (r['ACCOMPLISHMENT RATE'] || "0").replace('%', '').trim();
-                const rate = parseFloat(rateStr) || 0;
+                const dateKey = Object.keys(r).find(key => key.toUpperCase().includes('ENCODED'));
+                const hasDate = (r[dateKey] || "").trim() !== "";
+                
                 if (!grouped[office]) grouped[office] = { sum: 0, count: 0 };
-                grouped[office].sum += rate; grouped[office].count += 1;
+                
+                if (hasDate) {
+                    const rate = parseFloat((r['ACCOMPLISHMENT RATE'] || "0").replace('%', '')) || 0;
+                    grouped[office].sum += rate;
+                    grouped[office].count += 1;
+                } else {
+                    // Force 0 pero bibilangin para lumitaw ang label
+                    grouped[office].sum += 0;
+                    grouped[office].count += 1;
+                }
             });
 
             renderCharts(Object.keys(grouped), Object.keys(grouped).map(l => (grouped[l].sum / grouped[l].count).toFixed(2)), encodedCount, missing);
@@ -248,20 +251,7 @@
             charts.pie = new Chart(document.getElementById('pieChart'), {
                 type: 'doughnut',
                 data: { labels: ['Encoded', 'Missing'], datasets: [{ data: [encoded, missing], backgroundColor: ['#22c55e', '#ef4444'], borderWidth: 2, borderColor: '#ffffff' }] },
-                options: { 
-                    cutout: '55%',
-                    plugins: { 
-                        legend: { position: 'bottom', labels: { boxWidth: 12 } }, 
-                        datalabels: {
-                            display: true, color: '#fff', font: { weight: 'bold', size: 14 },
-                            formatter: (value, ctx) => {
-                                let sum = 0;
-                                ctx.chart.data.datasets[0].data.map(d => sum += d);
-                                return sum > 0 ? (value * 100 / sum).toFixed(0) + "%" : "";
-                            }
-                        }
-                    } 
-                }
+                options: { cutout: '55%', plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } }, datalabels: { display: true, color: '#fff', font: { weight: 'bold', size: 14 }, formatter: (value, ctx) => { let sum = 0; ctx.chart.data.datasets[0].data.map(d => sum += d); return sum > 0 ? (value * 100 / sum).toFixed(0) + "%" : ""; } } } }
             });
         }
 
@@ -272,13 +262,9 @@
                 const dateKey = Object.keys(r).find(key => key.toUpperCase().includes('ENCODED'));
                 const dateStr = (r[dateKey] || "").trim();
                 const dateObj = new Date(dateStr);
-                if (!isNaN(dateObj.getTime())) {
-                    if (!officeDates[office] || dateObj < officeDates[office]) officeDates[office] = dateObj;
-                }
+                if (!isNaN(dateObj.getTime())) { if (!officeDates[office] || dateObj < officeDates[office]) officeDates[office] = dateObj; }
             });
-
             const rankedOffices = Object.keys(officeDates).map(o => ({ office: o, date: officeDates[o] })).sort((a, b) => a.date - b.date);
-
             let html = '';
             rankedOffices.forEach((item, index) => {
                 const dateDisplay = item.date.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true });
