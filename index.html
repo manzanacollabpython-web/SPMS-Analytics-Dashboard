@@ -69,12 +69,14 @@
     </div>
 
     <script>
-        const CSV_LINK = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSk0F8K5bfpkZ6Q8JUoDBZ68NqTfiW-r8F9s165g7inDSvnVwrQNBU8Dlw2WPOPeqzVCxSl3Emuix4E/pub?gid=890592255&single=true&output=csv&v=' + Date.now();
+        const CSV_LINK = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSk0F8K5bfpkZ6Q8JUoDBZ68NqTfiW-r8F9s165g7inDSvnVwrQNBU8Dlw2WPOPeqzVCxSl3Emuix4E/pub?gid=890592255&single=true&output=csv&cache=' + Date.now();
 
-        let charts = {};
+        let barChartInstance = null;
+        let pieChartInstance = null;
 
         function init() {
             document.getElementById('sync-status').innerText = 'LOADING...';
+            
             Papa.parse(CSV_LINK, {
                 download: true,
                 header: true,
@@ -82,36 +84,37 @@
                 complete: function(results) {
                     const allData = results.data;
                     
-                    // 1. FILTER: Q1 + 2026 + DAPAT MAY LAMAN ANG OFFICE
-                    const q1Rows = allData.filter(r => {
+                    // --- ANG ULTIMATE FILTER MO ---
+                    const validRows = allData.filter(r => {
                         const q = (r.QUARTER || "").trim().toUpperCase();
                         const y = (r.YEAR || "").trim();
+                        const rate = (r['ACCOMPLISHMENT RATE'] || "").trim();
                         const office = (r.OFFICE || "").trim();
-                        return q === 'Q1' && y === '2026' && office !== "";
+
+                        // Tignan kung pasok sa lahat ng requirements:
+                        const isQ1 = (q === 'Q1');
+                        const is2026 = (y === '2026');
+                        const hasOffice = (office !== "");
+                        const hasRate = (rate !== "" && rate !== "0" && rate !== "Not Reported"); // DAPAT MAY LAMAN
+
+                        return isQ1 && is2026 && hasOffice && hasRate;
                     });
 
-                    if (q1Rows.length > 0) {
-                        updateDashboard(q1Rows);
-                        document.getElementById('sync-status').innerText = 'LIVE';
+                    if (validRows.length > 0) {
+                        updateDashboard(validRows);
+                        document.getElementById('sync-status').innerText = 'LIVE (STRICT FILTER)';
                         document.getElementById('sync-status').className = 'text-green-400 font-bold';
                     } else {
-                        document.getElementById('sync-status').innerText = 'FILTER ERROR: 0 ROWS';
+                        document.getElementById('stat-total').innerText = "0";
+                        document.getElementById('sync-status').innerText = 'NO VALID DATA';
                     }
                 }
             });
         }
 
         function updateDashboard(rows) {
-            // 2. FILTER: "Reported" status at "May Laman ang Accomplishment Rate"
-            const reportedRows = rows.filter(r => {
-                const status = (r.STATUS || "").trim();
-                const rate = (r['ACCOMPLISHMENT RATE'] || "").trim();
-                // Isasama lang kung Reported at hindi blank o hindi "0" (kung gusto mong lagyan ng data)
-                return status === 'Reported' && rate !== "" && rate !== "0";
-            });
-
-            const total = rows.length; // Eto dapat yung 14
-            const reported = reportedRows.length;
+            const total = rows.length; 
+            const reported = rows.filter(r => (r.STATUS || "").trim() === 'Reported').length;
             const onTime = rows.filter(r => (r['WITHIN DEADLINE'] || "").trim() === 'On Time').length;
 
             document.getElementById('stat-total').innerText = total;
@@ -121,13 +124,16 @@
 
             // Grouping for Bar Chart (Averaging)
             const grouped = {};
-            reportedRows.forEach(r => {
-                const office = r.OFFICE.trim();
-                const rate = parseFloat((r['ACCOMPLISHMENT RATE'] || "0").replace('%', '')) || 0;
-                
-                if (!grouped[office]) grouped[office] = { sum: 0, count: 0 };
-                grouped[office].sum += rate;
-                grouped[office].count += 1;
+            rows.forEach(r => {
+                // Babasahin lang yung rate kung status ay Reported
+                if ((r.STATUS || "").trim() === 'Reported') {
+                    const office = r.OFFICE.trim();
+                    const rate = parseFloat((r['ACCOMPLISHMENT RATE'] || "0").replace('%', '')) || 0;
+                    
+                    if (!grouped[office]) grouped[office] = { sum: 0, count: 0 };
+                    grouped[office].sum += rate;
+                    grouped[office].count += 1;
+                }
             });
 
             const labels = Object.keys(grouped);
@@ -137,12 +143,11 @@
         }
 
         function renderCharts(labels, dataValues, reported, total) {
-            // Destroy existing charts to refresh
-            if(charts.bar) charts.bar.destroy();
-            if(charts.pie) charts.pie.destroy();
+            if(barChartInstance) barChartInstance.destroy();
+            if(pieChartInstance) pieChartInstance.destroy();
 
             // Bar Chart
-            charts.bar = new Chart(document.getElementById('barChart'), {
+            barChartInstance = new Chart(document.getElementById('barChart'), {
                 type: 'bar',
                 data: {
                     labels: labels,
@@ -161,7 +166,7 @@
             });
 
             // Pie Chart
-            charts.pie = new Chart(document.getElementById('pieChart'), {
+            pieChartInstance = new Chart(document.getElementById('pieChart'), {
                 type: 'doughnut',
                 data: {
                     labels: ['Reported', 'Pending'],
