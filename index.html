@@ -6,7 +6,7 @@
     <title>ITRMC DASHBOARD</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
 </head>
 <body class="bg-gray-100 min-h-screen pb-10">
@@ -69,6 +69,9 @@
     </div>
 
     <script>
+        // I-REGISTER ANG PLUGIN PARA SIGURADONG GAGANA
+        Chart.register(ChartDataLabels);
+
         const CSV_LINK = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSk0F8K5bfpkZ6Q8JUoDBZ68NqTfiW-r8F9s165g7inDSvnVwrQNBU8Dlw2WPOPeqzVCxSl3Emuix4E/pub?gid=890592255&single=true&output=csv&cache=' + Date.now();
 
         let charts = {};
@@ -131,10 +134,9 @@
             if(charts.bar) charts.bar.destroy();
             if(charts.pie) charts.pie.destroy();
 
-            // Bar Chart (May labels na)
+            // Bar Chart
             charts.bar = new Chart(document.getElementById('barChart'), {
                 type: 'bar',
-                plugins: [ChartDataLabels], // Idinagdag ang plugin dito
                 data: {
                     labels: labels,
                     datasets: [{
@@ -149,30 +151,29 @@
                     maintainAspectRatio: false,
                     plugins: { 
                         legend: { display: false },
-                        // Setting para sa pwesto at itsura ng labels
+                        // DITO NAKA-SET YUNG LABEL SA DULO NG BAR
                         datalabels: {
                             anchor: 'end',
-                            align: 'end',
+                            align: 'right', // Para sa labas ng mismong tip ng bar
                             color: '#1e3a8a',
-                            font: { weight: 'bold' },
+                            font: { weight: 'bold', size: 12 },
                             formatter: function(value) {
-                                return value + '%';
+                                return value + '%'; // Dinadagdag ang percent sign
                             }
                         }
                     },
                     scales: { 
                         x: { 
                             beginAtZero: true,
-                            grace: '15%' // Dinagdagan ng space sa kanan para hindi maputol ang label
+                            grace: '20%' // Nagbibigay ng extra space sa kanan para di maputol yung percentage number
                         } 
                     }
                 }
             });
 
-            // Pie Chart (Pinatay ang labels dito para hindi makalat)
+            // Pie Chart
             charts.pie = new Chart(document.getElementById('pieChart'), {
                 type: 'doughnut',
-                plugins: [ChartDataLabels],
                 data: {
                     labels: ['Reported', 'Pending'],
                     datasets: [{
@@ -185,7 +186,8 @@
                     cutout: '75%', 
                     plugins: { 
                         legend: { position: 'bottom' },
-                        datalabels: { display: false } // Walang labels sa pie chart
+                        // Pinatay ang datalabels sa pie chart para hindi makalat tingnan
+                        datalabels: { display: false } 
                     } 
                 }
             });
