@@ -30,7 +30,6 @@
         .kpi-title {
             color: #8b949e;
         }
-        /* Custom scrollbar para malinis */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #0d1117; }
         ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 10px; }
@@ -67,9 +66,9 @@
         </div>
     </nav>
 
-    <div class="container mx-auto px-4 h-[calc(100vh-80px)] flex flex-col justify-between py-2">
+    <div class="container mx-auto px-4 h-[calc(100vh-80px)] flex flex-col justify-between py-3">
         
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div class="dashboard-card py-3 px-6 text-center border-b-2 border-b-[#388bfd]">
                 <p class="kpi-title text-[10px] font-bold uppercase mb-0.5">Average Accomplishment</p>
                 <h2 id="stat-avg" class="big-kpi text-4xl leading-none">0.00%</h2>
@@ -80,7 +79,7 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
             <div class="dashboard-card p-2 text-center border-b-2 border-b-[#8b949e]">
                 <p class="kpi-title text-[9px] font-bold uppercase mb-0.5">Total KPI</p>
                 <h2 id="stat-total" class="big-kpi text-2xl leading-tight">0</h2>
@@ -103,7 +102,7 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-grow mt-3 mb-2">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-grow mb-2">
             <div class="dashboard-card p-4 lg:col-span-2 flex flex-col">
                 <h3 class="kpi-title font-bold mb-2 flex items-center text-[10px] uppercase tracking-wider">
                     <span class="w-2 h-2 bg-[#388bfd] rounded-full mr-2"></span>
@@ -126,21 +125,19 @@
     </div>
 
     <div class="container mx-auto px-4 py-12 border-t border-[#30363d]">
-        <div class="dashboard-card p-8 border-t-4 border-t-[#8957e5] w-full">
-            <h3 class="big-kpi text-2xl mb-2 text-center">🏆 EARLY BIRD RANKING</h3>
-            <p id="ranking-subtitle" class="text-xs text-[#8b949e] mb-8 text-center uppercase tracking-widest italic">Ranked by Earliest Date Encoded</p>
-            
+        <div class="dashboard-card p-8 border-t-4 border-t-[#8957e5] w-full text-center">
+            <h3 class="big-kpi text-2xl mb-2">🏆 EARLY BIRD RANKING</h3>
+            <p id="ranking-subtitle" class="text-xs text-[#8b949e] mb-8 uppercase tracking-widest italic">Ranked by Earliest Date Encoded</p>
             <div class="overflow-x-auto w-full">
                 <table class="w-full text-sm text-left text-[#c9d1d9]">
                     <thead class="text-xs text-[#8b949e] uppercase bg-[#0d1117] border border-[#30363d]">
                         <tr>
-                            <th class="px-6 py-4">Rank</th>
-                            <th class="px-6 py-4">Office / Division</th>
-                            <th class="px-6 py-4">Date & Time Encoded</th>
+                            <th class="px-6 py-4 font-bold">Rank</th>
+                            <th class="px-6 py-4 font-bold">Office / Division</th>
+                            <th class="px-6 py-4 font-bold">Date & Time Encoded</th>
                         </tr>
                     </thead>
-                    <tbody id="ranking-body" class="divide-y divide-[#30363d]">
-                    </tbody>
+                    <tbody id="ranking-body" class="divide-y divide-[#30363d]"></tbody>
                 </table>
             </div>
         </div>
@@ -150,7 +147,6 @@
         try {
             Chart.register(ChartDataLabels);
             Chart.defaults.color = '#8b949e';
-            Chart.defaults.borderColor = 'transparent';
         } catch(e) { console.error(e); }
 
         const CSV_LINK = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSk0F8K5bfpkZ6Q8JUoDBZ68NqTfiW-r8F9s165g7inDSvnVwrQNBU8Dlw2WPOPeqzVCxSl3Emuix4E/pub?gid=890592255&single=true&output=csv&v=' + Date.now();
