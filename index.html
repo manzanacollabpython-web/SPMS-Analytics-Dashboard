@@ -17,51 +17,51 @@
         <div class="container mx-auto flex justify-between items-center">
             <div>
                 <h1 class="text-2xl font-bold tracking-tight uppercase">ITRMC DASHBOARD</h1>
-                <p class="text-blue-100 text-sm">Accomplishment Monitoring System (Grouped by Division)</p>
+                <p class="text-blue-100 text-sm">Accomplishment Monitoring System</p>
             </div>
-            <div class="text-right hidden md:block text-xs opacity-80">
-                Data Source: CSV Sync (Live)<br>
-                Status: <span id="sync-status">Connecting...</span>
+            <div class="text-right text-xs opacity-80">
+                Status: <span id="sync-status" class="font-bold">INITIALIZING...</span>
             </div>
         </div>
     </nav>
 
     <div class="container mx-auto px-4">
-        
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
             <div class="bg-white p-5 rounded-xl shadow-sm border-b-4 border-blue-500">
                 <p class="text-gray-500 text-xs font-bold uppercase">Total Indicators</p>
-                <h2 id="stat-total" class="text-3xl font-black text-gray-800">0</h2>
+                <h2 id="stat-total" class="text-3xl font-black text-gray-800 tracking-tighter">0</h2>
             </div>
             <div class="bg-white p-5 rounded-xl shadow-sm border-b-4 border-green-500">
                 <p class="text-gray-500 text-xs font-bold uppercase">Reported</p>
-                <h2 id="stat-reported" class="text-3xl font-black text-green-600">0</h2>
+                <h2 id="stat-reported" class="text-3xl font-black text-green-600 tracking-tighter">0</h2>
             </div>
             <div class="bg-white p-5 rounded-xl shadow-sm border-b-4 border-yellow-500">
                 <p class="text-gray-500 text-xs font-bold uppercase">On Time</p>
-                <h2 id="stat-ontime" class="text-3xl font-black text-yellow-600">0</h2>
+                <h2 id="stat-ontime" class="text-3xl font-black text-yellow-600 tracking-tighter">0</h2>
             </div>
             <div class="bg-white p-5 rounded-xl shadow-sm border-b-4 border-red-500">
                 <p class="text-gray-500 text-xs font-bold uppercase">Pending</p>
-                <h2 id="stat-pending" class="text-3xl font-black text-red-600">0</h2>
+                <h2 id="stat-pending" class="text-3xl font-black text-red-600 tracking-tighter">0</h2>
             </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div class="bg-white p-6 rounded-2xl shadow-sm">
-                <h3 class="text-gray-700 font-bold mb-4 flex items-center">
+                <h3 class="text-gray-700 font-bold mb-4 flex items-center italic">
                     <span class="w-2 h-2 bg-blue-600 rounded-full mr-2"></span>
                     Average Accomplishment per Division (%)
                 </h3>
-                <canvas id="barChart" height="250"></canvas>
+                <div class="relative" style="height:350px">
+                    <canvas id="barChart"></canvas>
+                </div>
             </div>
 
             <div class="bg-white p-6 rounded-2xl shadow-sm">
-                <h3 class="text-gray-700 font-bold mb-4 flex items-center">
+                <h3 class="text-gray-700 font-bold mb-4 flex items-center italic">
                     <span class="w-2 h-2 bg-blue-600 rounded-full mr-2"></span>
                     Submission Overview
                 </h3>
-                <div class="max-w-[300px] mx-auto">
+                <div class="max-w-[280px] mx-auto">
                     <canvas id="pieChart"></canvas>
                 </div>
             </div>
@@ -69,66 +69,77 @@
     </div>
 
     <script>
-        const CSV_LINK = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSk0F8K5bfpkZ6Q8JUoDBZ68NqTfiW-r8F9s165g7inDSvnVwrQNBU8Dlw2WPOPeqzVCxSl3Emuix4E/pub?gid=890592255&single=true&output=csv';
+        // Idinagdag natin ang 'cache-buster' (Date.now) para laging fresh ang data at hindi ma-stuck sa "Connecting"
+        const CSV_LINK = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSk0F8K5bfpkZ6Q8JUoDBZ68NqTfiW-r8F9s165g7inDSvnVwrQNBU8Dlw2WPOPeqzVCxSl3Emuix4E/pub?gid=890592255&single=true&output=csv&cache=' + Date.now();
 
-        function fetchData() {
+        function loadData() {
+            document.getElementById('sync-status').innerText = 'LOADING...';
+            
             Papa.parse(CSV_LINK, {
                 download: true,
                 header: true,
+                skipEmptyLines: true,
                 complete: function(results) {
+                    console.log("Data loaded:", results.data);
                     const rows = results.data.filter(r => r.OFFICE && r.OFFICE.trim() !== "");
-                    updateDashboard(rows);
-                    document.getElementById('sync-status').innerText = 'Data Live';
+                    
+                    if (rows.length > 0) {
+                        updateDashboard(rows);
+                        document.getElementById('sync-status').innerText = 'LIVE';
+                        document.getElementById('sync-status').className = 'text-green-400 font-bold';
+                    } else {
+                        document.getElementById('sync-status').innerText = 'EMPTY DATA';
+                    }
+                },
+                error: function(err) {
+                    console.error("Error:", err);
+                    document.getElementById('sync-status').innerText = 'CONNECTION ERROR';
                 }
             });
         }
 
         function updateDashboard(rows) {
             const reportedRows = rows.filter(r => r.STATUS === 'Reported');
-            const onTimeCount = rows.filter(r => r['WITHIN DEADLINE'] === 'On Time').length;
             const totalCount = rows.length;
             const reportedCount = reportedRows.length;
+            const onTimeCount = rows.filter(r => r['WITHIN DEADLINE'] === 'On Time').length;
 
             document.getElementById('stat-total').innerText = totalCount;
             document.getElementById('stat-reported').innerText = reportedCount;
             document.getElementById('stat-ontime').innerText = onTimeCount;
             document.getElementById('stat-pending').innerText = totalCount - reportedCount;
 
-            // Logic para pagsamahin ang magkakaparehong OFFICE
-            const groupedData = {};
+            // Grouping Logic
+            const grouped = {};
             reportedRows.forEach(r => {
                 const office = r.OFFICE.trim();
-                const rate = parseFloat(r['ACCOMPLISHMENT RATE'].replace('%', '')) || 0;
+                const rawRate = r['ACCOMPLISHMENT RATE'] || "0";
+                const rate = parseFloat(rawRate.replace('%', '')) || 0;
                 
-                if (!groupedData[office]) {
-                    groupedData[office] = { totalRate: 0, count: 0 };
-                }
-                groupedData[office].totalRate += rate;
-                groupedData[office].count += 1;
+                if (!grouped[office]) grouped[office] = { sum: 0, count: 0 };
+                grouped[office].sum += rate;
+                grouped[office].count += 1;
             });
 
-            const officeLabels = Object.keys(groupedData);
-            const averageRates = officeLabels.map(office => {
-                return (groupedData[office].totalRate / groupedData[office].count).toFixed(2);
-            });
+            const labels = Object.keys(grouped);
+            const averages = labels.map(l => (grouped[l].sum / grouped[l].count).toFixed(1));
 
-            // Bar Chart (Grouped)
+            // Bar Chart
             new Chart(document.getElementById('barChart'), {
                 type: 'bar',
                 data: {
-                    labels: officeLabels,
+                    labels: labels,
                     datasets: [{
-                        label: 'Average Rate %',
-                        data: averageRates,
-                        backgroundColor: '#3b82f6',
-                        borderRadius: 5
+                        label: 'Avg Rate %',
+                        data: averages,
+                        backgroundColor: '#2563eb',
+                        borderRadius: 6
                     }]
                 },
                 options: { 
-                    indexAxis: 'y',
-                    plugins: {
-                        legend: { display: false }
-                    }
+                    indexAxis: 'y', 
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } }
                 }
             });
 
@@ -139,4 +150,16 @@
                     labels: ['Reported', 'Pending'],
                     datasets: [{
                         data: [reportedCount, totalCount - reportedCount],
-                        backgroundColor: ['#10b981
+                        backgroundColor: ['#10b981', '#f87171'],
+                        borderWidth: 0
+                    }]
+                },
+                options: { cutout: '70%' }
+            });
+        }
+
+        // Start loading
+        window.onload = loadData;
+    </script>
+</body>
+</html>
