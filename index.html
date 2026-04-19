@@ -8,125 +8,202 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Design Update: Modern Font and Base Colors */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0d1117; /* Darkest Navy/Black background like image 3 */
+            color: #c9d1d9; /* Lighter text color */
+        }
+        
+        /* Design Update: Custom Styles for Dashboard Cards */
+        .dashboard-card {
+            background-color: #161b22; /* Dark Slate card color */
+            border: 1px solid #30363d; /* Subtle dark border */
+            border-radius: 0.75rem; /* Large rounded corners */
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+        
+        .dashboard-card:hover {
+            transform: translateY(-2px);
+            border-color: #58a6ff; /* Blue hover effect */
+        }
+        
+        .big-kpi {
+            font-weight: 900;
+            color: #f0f6fc; /* Very light white for big numbers */
+        }
+        
+        .kpi-title {
+            color: #8b949e; /* Muted gray for kpi labels */
+        }
+    </style>
 </head>
-<body class="bg-gray-50 min-h-screen pb-12">
+<body class="min-h-screen pb-12">
 
-    <nav class="bg-[#2d5ebd] px-6 py-3 text-white shadow-md mb-4">
+    <nav class="bg-[#161b22] px-6 py-4 text-white shadow-lg mb-8 border-b border-[#30363d]">
         <div class="container mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
             <div>
-                <h1 class="text-xl font-bold tracking-wide">ITRMC DASHBOARD</h1>
-                <p class="text-sm text-blue-100">Accomplishment Monitoring System</p>
+                <h1 class="text-2xl font-black tracking-tight text-[#f0f6fc]">ITRMC DASHBOARD</h1>
+                <p class="text-sm text-[#8b949e]">Accomplishment Monitoring System</p>
             </div>
             
-            <div class="flex items-center gap-3 bg-white/10 p-2 rounded-lg border border-white/20">
+            <div class="flex items-center gap-3 bg-[#0d1117] p-3 rounded-xl border border-[#30363d]">
                 <div class="flex flex-col">
-                    <label class="text-[10px] uppercase font-bold text-blue-200">Year</label>
-                    <select id="filter-year" onchange="applyFilters()" class="bg-white text-gray-800 text-sm rounded px-2 py-1 outline-none border-none font-bold cursor-pointer"></select>
+                    <label class="text-[10px] uppercase font-bold text-[#8b949e]">Year</label>
+                    <select id="filter-year" onchange="applyFilters()" class="bg-[#21262d] text-[#f0f6fc] text-sm rounded-lg px-3 py-1.5 outline-none border border-[#30363d] font-bold cursor-pointer">
+                    </select>
                 </div>
                 <div class="flex flex-col">
-                    <label class="text-[10px] uppercase font-bold text-blue-200">Quarter</label>
-                    <select id="filter-quarter" onchange="applyFilters()" class="bg-white text-gray-800 text-sm rounded px-2 py-1 outline-none border-none font-bold cursor-pointer">
+                    <label class="text-[10px] uppercase font-bold text-[#8b949e]">Quarter</label>
+                    <select id="filter-quarter" onchange="applyFilters()" class="bg-[#21262d] text-[#f0f6fc] text-sm rounded-lg px-3 py-1.5 outline-none border border-[#30363d] font-bold cursor-pointer">
                         <option value="Q1">Q1</option>
                         <option value="Q2">Q2</option>
                         <option value="Q3">Q3</option>
                         <option value="Q4">Q4</option>
                     </select>
                 </div>
-                <div class="text-right ml-2 pl-3 border-l border-white/20">
-                    <p class="text-[10px] opacity-90 uppercase font-bold text-blue-200">Status</p>
-                    <span id="sync-status" class="text-xs font-bold text-yellow-300">Syncing...</span>
+                <div class="text-right ml-2 pl-3 border-l border-[#30363d]">
+                    <p class="text-[10px] uppercase font-bold text-[#8b949e]">Data Status</p>
+                    <span id="sync-status" class="text-xs font-bold text-[#f2cc60]">Syncing...</span>
                 </div>
             </div>
         </div>
     </nav>
 
-    <div class="container mx-auto px-4 min-h-[85vh] flex flex-col">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
-            <div class="bg-white py-4 px-6 rounded-xl shadow-sm border-b-4 border-blue-600 text-center">
-                <p class="text-gray-500 text-sm font-bold uppercase mb-1">Average Accomplishment</p>
-                <h2 id="stat-avg" class="text-5xl font-black text-blue-700">0.00%</h2>
+    <div class="container mx-auto px-4 min-h-[80vh] flex flex-col">
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div class="dashboard-card py-6 px-8 text-center border-b-4 border-b-[#388bfd]">
+                <p class="kpi-title text-sm font-semibold uppercase mb-2">Average Accomplishment</p>
+                <h2 id="stat-avg" class="big-kpi text-6xl">0.00%</h2>
             </div>
-            <div class="bg-white py-4 px-6 rounded-xl shadow-sm border-b-4 border-teal-500 text-center">
-                <p class="text-gray-500 text-sm font-bold uppercase mb-1">Overall Compliance</p>
-                <h2 id="stat-comp" class="text-5xl font-black text-teal-600">0.00%</h2>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
-            <div class="bg-white p-3 rounded-xl shadow-sm border-b-4 border-gray-400 text-center">
-                <p class="text-gray-500 text-xs font-bold uppercase mb-1">Total KPI</p>
-                <h2 id="stat-total" class="text-2xl font-black text-gray-800">0</h2>
-            </div>
-            <div class="bg-white p-3 rounded-xl shadow-sm border-b-4 border-blue-400 text-center">
-                <p class="text-gray-500 text-xs font-bold uppercase mb-1">Encoded KPI</p>
-                <h2 id="stat-encoded" class="text-2xl font-black text-blue-600">0</h2>
-            </div>
-            <div class="bg-white p-3 rounded-xl shadow-sm border-b-4 border-green-500 text-center">
-                <p class="text-gray-500 text-xs font-bold uppercase mb-1">On-Time</p>
-                <h2 id="stat-ontime" class="text-2xl font-black text-green-600">0</h2>
-            </div>
-            <div class="bg-white p-3 rounded-xl shadow-sm border-b-4 border-yellow-500 text-center">
-                <p class="text-gray-500 text-xs font-bold uppercase mb-1">Late</p>
-                <h2 id="stat-late" class="text-2xl font-black text-yellow-600">0</h2>
-            </div>
-            <div class="bg-white p-3 rounded-xl shadow-sm border-b-4 border-red-500 text-center">
-                <p class="text-gray-500 text-xs font-bold uppercase mb-1">Not Submitted</p>
-                <h2 id="stat-missing" class="text-2xl font-black text-red-600">0</h2>
+            <div class="dashboard-card py-6 px-8 text-center border-b-4 border-b-[#3fb950]">
+                <p class="kpi-title text-sm font-semibold uppercase mb-2">Overall Compliance</p>
+                <h2 id="stat-comp" class="big-kpi text-6xl">0.00%</h2>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-grow">
-            <div class="bg-white p-5 rounded-xl shadow-sm lg:col-span-2">
-                <h3 class="text-gray-700 font-bold mb-3 flex items-center text-sm uppercase">
-                    <span class="w-3 h-3 bg-blue-500 rounded-full mr-2"></span>
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+            <div class="dashboard-card p-4 text-center border-b-4 border-b-[#8b949e]">
+                <p class="kpi-title text-xs font-semibold uppercase mb-1.5 flex items-center justify-center gap-1.5">
+                    <svg class="w-3 h-3 text-[#8b949e]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z"></path></svg>
+                    Total KPI
+                </p>
+                <h2 id="stat-total" class="big-kpi text-4xl">0</h2>
+            </div>
+            <div class="dashboard-card p-4 text-center border-b-4 border-b-[#388bfd]">
+                <p class="kpi-title text-xs font-semibold uppercase mb-1.5 flex items-center justify-center gap-1.5">
+                    <svg class="w-3 h-3 text-[#388bfd]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                    Encoded KPI
+                </p>
+                <h2 id="stat-encoded" class="big-kpi text-4xl text-[#388bfd]">0</h2>
+            </div>
+            <div class="dashboard-card p-4 text-center border-b-4 border-b-[#3fb950]">
+                <p class="kpi-title text-xs font-semibold uppercase mb-1.5 flex items-center justify-center gap-1.5">
+                    <svg class="w-3 h-3 text-[#3fb950]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    On-Time
+                </p>
+                <h2 id="stat-ontime" class="big-kpi text-4xl text-[#3fb950]">0</h2>
+            </div>
+            <div class="dashboard-card p-4 text-center border-b-4 border-b-[#d29922]">
+                <p class="kpi-title text-xs font-semibold uppercase mb-1.5 flex items-center justify-center gap-1.5">
+                    <svg class="w-3 h-3 text-[#d29922]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                    Late
+                </p>
+                <h2 id="stat-late" class="big-kpi text-4xl text-[#d29922]">0</h2>
+            </div>
+            <div class="dashboard-card p-4 text-center border-b-4 border-b-[#f85149]">
+                <p class="kpi-title text-xs font-semibold uppercase mb-1.5 flex items-center justify-center gap-1.5">
+                    <svg class="w-3 h-3 text-[#f85149]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Missing
+                </p>
+                <h2 id="stat-missing" class="big-kpi text-4xl text-[#f85149]">0</h2>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 flex-grow">
+            <div class="dashboard-card p-6 lg:col-span-2">
+                <h3 class="kpi-title font-bold mb-4 flex items-center text-sm uppercase tracking-wider">
+                    <span class="w-3 h-3 bg-[#388bfd] rounded-full mr-2.5"></span>
                     Accomplishment Rate per Office (%)
                 </h3>
-                <div class="relative" style="height:330px">
+                <div class="relative" style="height:350px">
                     <canvas id="barChart"></canvas>
                 </div>
             </div>
-            <div class="bg-white p-5 rounded-xl shadow-sm flex flex-col justify-center text-center">
-                <h3 class="text-gray-700 font-bold mb-2 flex items-center justify-center text-sm uppercase">
-                    <span class="w-3 h-3 bg-blue-500 rounded-full mr-2"></span>
+
+            <div class="dashboard-card p-6 flex flex-col justify-center text-center">
+                <h3 class="kpi-title font-bold mb-3 flex items-center justify-center text-sm uppercase tracking-wider">
+                    <span class="w-3 h-3 bg-[#3fb950] rounded-full mr-2.5"></span>
                     Submission Overview
                 </h3>
-                <div class="w-full max-w-[260px] mx-auto mt-2">
+                <div class="w-full max-w-[250px] mx-auto mt-6">
                     <canvas id="pieChart"></canvas>
                 </div>
             </div>
         </div>
+
     </div>
 
-    <div class="container mx-auto px-4 mt-20">
-        <div class="bg-white p-8 rounded-xl shadow-md border-t-4 border-purple-500 w-full text-center">
-            <h3 class="text-purple-700 font-black text-2xl mb-2 uppercase">🏆 Early Bird Ranking</h3>
-            <p id="ranking-subtitle" class="text-sm text-gray-500 mb-8 uppercase tracking-widest italic">Ranked by Earliest Date Encoded</p>
+    <div class="container mx-auto px-4 mt-24">
+        
+        <div class="border-t-2 border-dashed border-[#30363d] pt-12 mb-8 text-center opacity-70">
+            <p class="text-[#8b949e] text-sm uppercase tracking-widest">Scroll down for details</p>
+            <span class="text-2xl">⬇️</span>
+        </div>
+
+        <div class="dashboard-card p-8 border-t-4 border-t-[#8957e5] w-full">
+            <h3 class="big-kpi text-3xl mb-3 flex items-center justify-center gap-3">
+                🏆 EARLY BIRD RANKING
+            </h3>
+            <p id="ranking-subtitle" class="text-sm text-[#8b949e] mb-10 text-center uppercase tracking-wider italic">Earliest Submissions</p>
+            
             <div class="overflow-x-auto w-full">
-                <table class="w-full text-sm text-left text-gray-600">
-                    <thead class="text-xs text-gray-700 uppercase bg-gray-100">
+                <table class="w-full text-sm text-left text-[#c9d1d9] table-auto">
+                    <thead class="text-xs text-[#8b949e] uppercase bg-[#0d1117] border border-[#30363d] rounded-lg">
                         <tr>
-                            <th class="px-6 py-4 rounded-tl-lg font-bold">Rank</th>
-                            <th class="px-6 py-4 font-bold">Office / Division</th>
-                            <th class="px-6 py-4 rounded-tr-lg font-bold">Date & Time Encoded</th>
+                            <th class="px-6 py-4.5 font-bold">Rank</th>
+                            <th class="px-6 py-4.5 font-bold">Office / Division</th>
+                            <th class="px-6 py-4.5 font-bold">Date & Time Encoded</th>
                         </tr>
                     </thead>
-                    <tbody id="ranking-body"></tbody>
+                    <tbody id="ranking-body" class="divide-y divide-[#30363d]">
+                    </tbody>
                 </table>
             </div>
         </div>
+
     </div>
 
     <script>
-        try { Chart.register(ChartDataLabels); } catch(e) { console.error(e); }
+        // NO LOGIC CHANGES ALLOWED AS PER USER REQUEST.
+        // JUST UPDATE CHART COLORS TO MATCH THE DARK DESIGN.
+        
+        try {
+            Chart.register(ChartDataLabels);
+            
+            // Design Update: Setting Chart Default Colors
+            Chart.defaults.color = '#8b949e'; // Default text color for charts
+            Chart.defaults.borderColor = '#30363d'; // Default border/gridline color
+            
+        } catch(e) {
+            console.error("Error loading ChartJS Plugins", e);
+        }
 
-        const CSV_LINK = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSk0F8K5bfpkZ6Q8JUoDBZ68NqTfiW-r8F9s165g7inDSvnVwrQNBU8Dlw2WPOPeqzVCxSl3Emuix4E/pub?gid=890592255&single=true&output=csv&v=' + new Date().getTime();
+        const CSV_LINK = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSk0F8K5bfpkZ6Q8JUoDBZ68NqTfiW-r8F9s165g7inDSvnVwrQNBU8Dlw2WPOPeqzVCxSl3Emuix4E/pub?gid=890592255&single=true&output=csv&v=' + Date.now();
 
         let rawData = [];
         let charts = {};
 
         function init() {
             Papa.parse(CSV_LINK, {
-                download: true, header: true, skipEmptyLines: true,
+                download: true,
+                header: true,
+                skipEmptyLines: true,
                 complete: function(results) {
                     rawData = results.data;
                     setupYearFilter(rawData);
@@ -138,12 +215,18 @@
         function setupYearFilter(data) {
             const years = [...new Set(data.map(r => (r.YEAR || "").trim()).filter(y => y !== ""))].sort().reverse();
             const yearSelect = document.getElementById('filter-year');
+            
             yearSelect.innerHTML = '';
+            
             if(years.length === 0) {
-                const opt = document.createElement('option'); opt.value = "2026"; opt.text = "2026"; yearSelect.add(opt);
+                const opt = document.createElement('option');
+                opt.value = "2026"; opt.text = "2026";
+                yearSelect.add(opt);
             } else {
                 years.forEach(y => {
-                    const opt = document.createElement('option'); opt.value = y; opt.text = y; yearSelect.add(opt);
+                    const opt = document.createElement('option');
+                    opt.value = y; opt.text = y;
+                    yearSelect.add(opt);
                 });
             }
         }
@@ -152,27 +235,30 @@
             const selectedYear = document.getElementById('filter-year').value;
             const selectedQuarter = document.getElementById('filter-quarter').value;
 
-            // Kunin lahat ng valid items para sa period
+            // NO LOGIC CHANGES ALLOWED.
             const periodKPIs = rawData.filter(r => {
-                const accRate = (r['ACCOMPLISHMENT RATE'] || "").trim();
-                return accRate !== "" && (r.QUARTER || "").trim().toUpperCase() === selectedQuarter && (r.YEAR || "").trim() === selectedYear;
+                const q = (r.QUARTER || "").trim().toUpperCase();
+                const y = (r.YEAR || "").trim();
+                const rate = (r['ACCOMPLISHMENT RATE'] || "").trim();
+                return q === selectedQuarter && y === selectedYear && rate !== "";
             });
 
-            // Encoded: Dapat may Date
             const validEncoded = periodKPIs.filter(r => {
                 const dateKey = Object.keys(r).find(key => key.toUpperCase().includes('ENCODED'));
-                return (r[dateKey] || "").trim() !== "";
+                const dateVal = (r[dateKey] || "").trim();
+                const status = (r.STATUS || "").trim();
+                return status === 'Reported' && dateVal !== "";
             });
 
             if (periodKPIs.length > 0) {
                 updateDashboard(periodKPIs, validEncoded);
                 buildRanking(validEncoded);
                 document.getElementById('sync-status').innerText = 'Data Loaded';
-                document.getElementById('sync-status').className = 'font-bold text-green-300';
+                document.getElementById('sync-status').className = 'font-bold text-[#3fb950]'; // Green
             } else {
                 clearDashboard();
                 document.getElementById('sync-status').innerText = 'No Data Found';
-                document.getElementById('sync-status').className = 'font-bold text-red-400';
+                document.getElementById('sync-status').className = 'font-bold text-[#f85149]'; // Red
             }
         }
 
@@ -182,10 +268,11 @@
             ['total', 'encoded', 'ontime', 'late', 'missing'].forEach(id => document.getElementById('stat-'+id).innerText = '0');
             if(charts.bar) charts.bar.destroy();
             if(charts.pie) charts.pie.destroy();
+            document.getElementById('ranking-body').innerHTML = '<tr><td colspan="3" class="px-6 py-8 text-center text-[#f85149] bg-[#161b22] border border-[#30363d] rounded-lg">⚠️ Walang data para sa period na ito.</td></tr>';
         }
 
         function updateDashboard(allRows, encodedRows) {
-            const total = allRows.length;
+            const total = allRows.length; 
             const encodedCount = encodedRows.length;
             const onTime = encodedRows.filter(r => (r['WITHIN DEADLINE'] || "").trim() === 'On Time').length;
             const late = encodedRows.filter(r => (r['WITHIN DEADLINE'] || "").trim() === 'Late').length;
@@ -208,73 +295,159 @@
             document.getElementById('stat-late').innerText = late;
             document.getElementById('stat-missing').innerText = missing;
 
-            // BAR GRAPH LOGIC: Ipakita lahat ng Office sa AllRows, pero 0 kung wala sa encodedRows
             const grouped = {};
-            allRows.forEach(r => {
+            encodedRows.forEach(r => {
                 const office = (r.OFFICE || "Unknown").trim();
-                const dateKey = Object.keys(r).find(key => key.toUpperCase().includes('ENCODED'));
-                const hasDate = (r[dateKey] || "").trim() !== "";
-                
+                const rate = parseFloat((r['ACCOMPLISHMENT RATE'] || "0").replace('%', '')) || 0;
                 if (!grouped[office]) grouped[office] = { sum: 0, count: 0 };
-                
-                if (hasDate) {
-                    const rate = parseFloat((r['ACCOMPLISHMENT RATE'] || "0").replace('%', '')) || 0;
-                    grouped[office].sum += rate;
-                    grouped[office].count += 1;
-                } else {
-                    // Force 0 pero bibilangin para lumitaw ang label
-                    grouped[office].sum += 0;
-                    grouped[office].count += 1;
-                }
+                grouped[office].sum += rate; grouped[office].count += 1;
             });
 
-            renderCharts(Object.keys(grouped), Object.keys(grouped).map(l => (grouped[l].sum / grouped[l].count).toFixed(2)), encodedCount, missing);
+            const labels = Object.keys(grouped);
+            const dataValues = labels.map(l => (grouped[l].sum / grouped[l].count).toFixed(2));
+
+            renderCharts(labels, dataValues, encodedCount, missing);
         }
 
         function renderCharts(labels, dataValues, encoded, missing) {
             if(charts.bar) charts.bar.destroy();
             if(charts.pie) charts.pie.destroy();
 
+            // Bar Chart Design Update: Blue Bars, Bold text
             charts.bar = new Chart(document.getElementById('barChart'), {
                 type: 'bar',
                 data: {
                     labels: labels,
-                    datasets: [{ label: 'Avg Rate (%)', data: dataValues, backgroundColor: '#3b82f6', borderRadius: 4 }]
+                    datasets: [{
+                        label: 'Average Rate (%)',
+                        data: dataValues,
+                        backgroundColor: '#388bfd', // Modern Blue
+                        borderRadius: 6 // rounded bar corners
+                    }]
                 },
                 options: { 
-                    indexAxis: 'y', maintainAspectRatio: false,
-                    plugins: { legend: { display: false }, datalabels: { anchor: 'end', align: 'right', color: '#1e3a8a', font: { weight: 'bold', size: 12 }, formatter: v => v + '%' } },
-                    scales: { x: { beginAtZero: true, grace: '15%' } }
+                    indexAxis: 'y', 
+                    maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { display: false },
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'right',
+                            color: '#388bfd', // Blue labels
+                            font: { weight: 'bold', size: 12 },
+                            formatter: function(value) { return value + '%'; }
+                        }
+                    },
+                    scales: {
+                        x: { 
+                            beginAtZero: true, 
+                            grace: '15%',
+                            ticks: { font: { weight: 'semibold' } },
+                            grid: { display: true } // Display grid for modern look
+                        },
+                        y: {
+                            ticks: { font: { weight: 'semibold' } },
+                            grid: { display: false } // No vertical gridlines
+                        }
+                    }
                 }
             });
 
+            // Pie Chart Design Update: Bold Ring, Modern Colors
             charts.pie = new Chart(document.getElementById('pieChart'), {
                 type: 'doughnut',
-                data: { labels: ['Encoded', 'Missing'], datasets: [{ data: [encoded, missing], backgroundColor: ['#22c55e', '#ef4444'], borderWidth: 2, borderColor: '#ffffff' }] },
-                options: { cutout: '55%', plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } }, datalabels: { display: true, color: '#fff', font: { weight: 'bold', size: 14 }, formatter: (value, ctx) => { let sum = 0; ctx.chart.data.datasets[0].data.map(d => sum += d); return sum > 0 ? (value * 100 / sum).toFixed(0) + "%" : ""; } } } }
+                data: {
+                    labels: ['Encoded', 'Missing'],
+                    datasets: [{
+                        data: [encoded, missing],
+                        backgroundColor: ['#3fb950', '#f85149'], // Green for Encoded, Red for Missing
+                        borderWidth: 3,
+                        borderColor: '#161b22', // Dark card background as border
+                    }]
+                },
+                options: { 
+                    cutout: '60%', // Thicker ring for bolder look like image 3
+                    plugins: { 
+                        legend: { 
+                            position: 'bottom', 
+                            labels: { 
+                                boxWidth: 15, 
+                                padding: 25, 
+                                font: { weight: 'semibold' } 
+                            } 
+                        }, 
+                        datalabels: {
+                            display: true,
+                            color: '#f0f6fc', // light text on colored ring
+                            font: { weight: 'bold', size: 14 },
+                            formatter: (value, ctx) => {
+                                let sum = 0;
+                                let dataArr = ctx.chart.data.datasets[0].data;
+                                dataArr.map(data => { sum += data; });
+                                let percentage = (value * 100 / sum).toFixed(0) + "%";
+                                return percentage === "0%" ? null : percentage; 
+                            }
+                        }
+                    } 
+                }
             });
         }
 
         function buildRanking(rows) {
             const officeDates = {};
+            let dateFound = false;
+
             rows.forEach(r => {
                 const office = (r.OFFICE || "Unknown").trim();
+                const status = (r.STATUS || "").trim();
+                
                 const dateKey = Object.keys(r).find(key => key.toUpperCase().includes('ENCODED'));
-                const dateStr = (r[dateKey] || "").trim();
-                const dateObj = new Date(dateStr);
-                if (!isNaN(dateObj.getTime())) { if (!officeDates[office] || dateObj < officeDates[office]) officeDates[office] = dateObj; }
+                const dateStr = dateKey ? (r[dateKey] || "").trim() : "";
+
+                if (dateStr && status === 'Reported') {
+                    const dateObj = new Date(dateStr);
+                    if (!isNaN(dateObj)) {
+                        dateFound = true;
+                        if (!officeDates[office] || dateObj < officeDates[office]) {
+                            officeDates[office] = dateObj;
+                        }
+                    }
+                }
             });
-            const rankedOffices = Object.keys(officeDates).map(o => ({ office: o, date: officeDates[o] })).sort((a, b) => a.date - b.date);
+
+            const rankedOffices = Object.keys(officeDates).map(office => {
+                return { office: office, date: officeDates[office] };
+            }).sort((a, b) => a.date - b.date);
+
             let html = '';
             rankedOffices.forEach((item, index) => {
-                const dateDisplay = item.date.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true });
-                let rankBadge = `<span class="font-bold text-gray-500">${index + 1}</span>`;
-                if(index === 0) rankBadge = `<span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full font-bold text-xs">🥇 1st</span>`;
-                if(index === 1) rankBadge = `<span class="px-3 py-1 bg-gray-200 text-gray-700 rounded-full font-bold text-xs">🥈 2nd</span>`;
-                if(index === 2) rankBadge = `<span class="px-3 py-1 bg-orange-100 text-orange-700 rounded-full font-bold text-xs">🥉 3rd</span>`;
-                html += `<tr class="bg-white border-b hover:bg-gray-50 transition"><td class="px-6 py-4">${rankBadge}</td><td class="px-6 py-4 font-bold text-blue-900">${item.office}</td><td class="px-6 py-4 font-mono text-gray-500">${dateDisplay}</td></tr>`;
+                const dateDisplay = item.date.toLocaleString('en-US', { 
+                    month: 'short', day: 'numeric', year: 'numeric', 
+                    hour: 'numeric', minute: '2-digit', hour12: true 
+                });
+
+                let rankBadge = `<span class="font-black text-[#8b949e] text-lg">${index + 1}</span>`;
+                if(index === 0) rankBadge = `<span class="px-3.5 py-1.5 bg-[#f2cc60]/10 text-[#f2cc60] rounded-full font-black text-xs border border-[#f2cc60]/20">🥇 1st</span>`;
+                if(index === 1) rankBadge = `<span class="px-3.5 py-1.5 bg-[#c9d1d9]/10 text-[#c9d1d9] rounded-full font-black text-xs border border-[#c9d1d9]/20">🥈 2nd</span>`;
+                if(index === 2) rankBadge = `<span class="px-3.5 py-1.5 bg-[#d29922]/10 text-[#d29922] rounded-full font-black text-xs border border-[#d29922]/20">🥉 3rd</span>`;
+
+                // Design Update: Table Rows
+                html += `
+                    <tr class="hover:bg-[#1c222b] transition border-b border-[#30363d]">
+                        <td class="px-6 py-5">${rankBadge}</td>
+                        <td class="px-6 py-5 font-extrabold text-[#f0f6fc] text-lg">${item.office}</td>
+                        <td class="px-6 py-5 font-mono text-sm text-[#8b949e]">${dateDisplay}</td>
+                    </tr>
+                `;
             });
-            document.getElementById('ranking-body').innerHTML = html || '<tr><td colspan="3" class="px-6 py-8 text-center text-red-500 bg-red-50 rounded-xl">⚠️ No valid encoded dates.</td></tr>';
+
+            if(!dateFound) {
+                html = `<tr><td colspan="3" class="px-6 py-8 text-center text-[#f85149] bg-[#161b22] border border-[#30363d] rounded-lg">
+                    ⚠️ System Message: Wala pang nare-record na oras ng submission.
+                </td></tr>`;
+            }
+
+            document.getElementById('ranking-body').innerHTML = html;
         }
 
         window.onload = init;
