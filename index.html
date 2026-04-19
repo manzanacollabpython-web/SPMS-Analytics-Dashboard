@@ -3,51 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ITRMC Performance Dashboard</title>
+    <title>ITRMC DASHBOARD</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <style>
+        /* Balik ang original blue gradient vibe */
+        .card-gradient { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); }
+    </style>
 </head>
 <body class="bg-gray-100 min-h-screen pb-10">
 
-    <nav class="bg-blue-800 p-6 text-white shadow-lg mb-8">
+    <nav class="card-gradient p-6 text-white shadow-lg mb-8">
         <div class="container mx-auto flex justify-between items-center">
             <div>
-                <h1 class="text-2xl font-bold">ITRMC DASHBOARD</h1>
-                <p class="text-blue-100 text-sm italic">Accomplishment Monitoring System</p>
+                <h1 class="text-2xl font-bold tracking-tight uppercase">ITRMC DASHBOARD</h1>
+                <p class="text-blue-100 text-sm">Accomplishment Monitoring System</p>
             </div>
-            <div id="sync-status" class="text-xs opacity-75">Syncing CSV...</div>
+            <div class="text-right hidden md:block text-xs opacity-80">
+                Data Source: CSV Sync (Live)<br>
+                Status: <span id="sync-status">Connecting...</span>
+            </div>
         </div>
     </nav>
 
     <div class="container mx-auto px-4">
+        
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            <div class="bg-white p-5 rounded-xl shadow border-b-4 border-blue-500">
-                <p class="text-xs font-bold text-gray-500 uppercase">Total Indicators</p>
+            <div class="bg-white p-5 rounded-xl shadow-sm border-b-4 border-blue-500">
+                <p class="text-gray-500 text-xs font-bold uppercase">Total Indicators</p>
                 <h2 id="stat-total" class="text-3xl font-black text-gray-800">0</h2>
             </div>
-            <div class="bg-white p-5 rounded-xl shadow border-b-4 border-green-500">
-                <p class="text-xs font-bold text-gray-500 uppercase">Reported</p>
+            <div class="bg-white p-5 rounded-xl shadow-sm border-b-4 border-green-500">
+                <p class="text-gray-500 text-xs font-bold uppercase">Reported</p>
                 <h2 id="stat-reported" class="text-3xl font-black text-green-600">0</h2>
             </div>
-            <div class="bg-white p-5 rounded-xl shadow border-b-4 border-yellow-500">
-                <p class="text-xs font-bold text-gray-500 uppercase">On Time</p>
+            <div class="bg-white p-5 rounded-xl shadow-sm border-b-4 border-yellow-500">
+                <p class="text-gray-500 text-xs font-bold uppercase">On Time</p>
                 <h2 id="stat-ontime" class="text-3xl font-black text-yellow-600">0</h2>
             </div>
-            <div class="bg-white p-5 rounded-xl shadow border-b-4 border-red-500">
-                <p class="text-xs font-bold text-gray-500 uppercase">Pending</p>
+            <div class="bg-white p-5 rounded-xl shadow-sm border-b-4 border-red-500">
+                <p class="text-gray-500 text-xs font-bold uppercase">Pending</p>
                 <h2 id="stat-pending" class="text-3xl font-black text-red-600">0</h2>
             </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div class="bg-white p-6 rounded-2xl shadow-sm">
-                <h3 class="text-gray-700 font-bold mb-4">Accomplishment Per Office (%)</h3>
+                <h3 class="text-gray-700 font-bold mb-4 flex items-center">
+                    <span class="w-2 h-2 bg-blue-600 rounded-full mr-2"></span>
+                    Accomplishment Rate per Office (%)
+                </h3>
                 <canvas id="barChart" height="200"></canvas>
             </div>
-            <div class="bg-white p-6 rounded-2xl shadow-sm flex flex-col items-center">
-                <h3 class="text-gray-700 font-bold mb-4 w-full text-left">Submission Overview</h3>
-                <div class="max-w-[300px]">
+
+            <div class="bg-white p-6 rounded-2xl shadow-sm">
+                <h3 class="text-gray-700 font-bold mb-4 flex items-center">
+                    <span class="w-2 h-2 bg-blue-600 rounded-full mr-2"></span>
+                    Submission Overview
+                </h3>
+                <div class="max-w-[300px] mx-auto">
                     <canvas id="pieChart"></canvas>
                 </div>
             </div>
@@ -55,14 +70,14 @@
     </div>
 
     <script>
-        const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSk0F8K5bfpkZ6Q8JUoDBZ68NqTfiW-r8F9s165g7inDSvnVwrQNBU8Dlw2WPOPeqzVCxSl3Emuix4E/pub?gid=890592255&single=true&output=csv';
+        const CSV_LINK = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSk0F8K5bfpkZ6Q8JUoDBZ68NqTfiW-r8F9s165g7inDSvnVwrQNBU8Dlw2WPOPeqzVCxSl3Emuix4E/pub?gid=890592255&single=true&output=csv';
 
         function fetchData() {
-            Papa.parse(CSV_URL, {
+            Papa.parse(CSV_LINK, {
                 download: true,
                 header: true,
                 complete: function(results) {
-                    const rows = results.data.filter(r => r.OFFICE); // Linisin ang rows
+                    const rows = results.data.filter(r => r.OFFICE);
                     updateDashboard(rows);
                     document.getElementById('sync-status').innerText = 'Data Live';
                 }
@@ -70,14 +85,14 @@
         }
 
         function updateDashboard(rows) {
-            const reported = rows.filter(r => r.STATUS === 'Reported').length;
-            const onTime = rows.filter(r => r['WITHIN DEADLINE'] === 'On Time').length;
-            const total = rows.length;
+            const reportedCount = rows.filter(r => r.STATUS === 'Reported').length;
+            const onTimeCount = rows.filter(r => r['WITHIN DEADLINE'] === 'On Time').length;
+            const totalCount = rows.length;
 
-            document.getElementById('stat-total').innerText = total;
-            document.getElementById('stat-reported').innerText = reported;
-            document.getElementById('stat-ontime').innerText = onTime;
-            document.getElementById('stat-pending').innerText = total - reported;
+            document.getElementById('stat-total').innerText = totalCount;
+            document.getElementById('stat-reported').innerText = reportedCount;
+            document.getElementById('stat-ontime').innerText = onTimeCount;
+            document.getElementById('stat-pending').innerText = totalCount - reportedCount;
 
             // Bar Chart
             const reportedRows = rows.filter(r => r.STATUS === 'Reported');
@@ -91,7 +106,7 @@
                     datasets: [{
                         label: 'Rate %',
                         data: rates,
-                        backgroundColor: '#1e40af',
+                        backgroundColor: '#3b82f6',
                         borderRadius: 5
                     }]
                 },
@@ -104,14 +119,9 @@
                 data: {
                     labels: ['Reported', 'Pending'],
                     datasets: [{
-                        data: [reported, total - reported],
-                        backgroundColor: ['#10b981', '#f87171']
+                        data: [reportedCount, totalCount - reportedCount],
+                        backgroundColor: ['#10b981', '#f87171'],
+                        borderWidth: 0
                     }]
-                }
-            });
-        }
-
-        fetchData();
-    </script>
-</body>
-</html>
+                },
+                options: { cutout: '7
