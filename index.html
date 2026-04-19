@@ -22,7 +22,7 @@
                 <div class="flex flex-col">
                     <label class="text-[10px] uppercase font-bold text-blue-200">Year</label>
                     <select id="filter-year" onchange="applyFilters()" class="bg-white text-gray-800 text-sm rounded px-2 py-1 outline-none border-none font-bold cursor-pointer">
-                        </select>
+                    </select>
                 </div>
                 <div class="flex flex-col">
                     <label class="text-[10px] uppercase font-bold text-blue-200">Quarter</label>
@@ -136,8 +136,8 @@
                 skipEmptyLines: true,
                 complete: function(results) {
                     rawData = results.data;
-                    setupYearFilter(rawData); // Alamin kung anong years ang meron sa sheet
-                    applyFilters(); // Unang load
+                    setupYearFilter(rawData);
+                    applyFilters();
                 }
             });
         }
@@ -145,19 +145,12 @@
         function setupYearFilter(data) {
             const years = [...new Set(data.map(r => (r.YEAR || "").trim()).filter(y => y !== ""))].sort().reverse();
             const yearSelect = document.getElementById('filter-year');
-            
-            // Burahin muna kung may laman
             yearSelect.innerHTML = '';
-            
             if(years.length === 0) {
-                const opt = document.createElement('option');
-                opt.value = "2026"; opt.text = "2026";
-                yearSelect.add(opt);
+                const opt = document.createElement('option'); opt.value = "2026"; opt.text = "2026"; yearSelect.add(opt);
             } else {
                 years.forEach(y => {
-                    const opt = document.createElement('option');
-                    opt.value = y; opt.text = y;
-                    yearSelect.add(opt);
+                    const opt = document.createElement('option'); opt.value = y; opt.text = y; yearSelect.add(opt);
                 });
             }
         }
@@ -166,19 +159,28 @@
             const selectedYear = document.getElementById('filter-year').value;
             const selectedQuarter = document.getElementById('filter-quarter').value;
 
-            // Subtitle update
             document.getElementById('ranking-subtitle').innerText = `${selectedQuarter} ${selectedYear} Earliest Submissions`;
 
-            const filteredData = rawData.filter(r => {
+            // STEP 1: Lahat ng KPI para sa napiling Year at Quarter
+            const periodKPIs = rawData.filter(r => {
                 const q = (r.QUARTER || "").trim().toUpperCase();
                 const y = (r.YEAR || "").trim();
-                const rate = (r['ACCOMPLISHMENT RATE'] || "").trim();
-                return q === selectedQuarter && y === selectedYear && rate !== "";
+                return q === selectedQuarter && y === selectedYear;
             });
 
-            if (filteredData.length > 0) {
-                updateDashboard(filteredData);
-                buildRanking(filteredData);
+            // STEP 2: Logic na hiningi mo boss - bibilangin lang na "Encoded" kung may Date
+            const encodedKPIs = periodKPIs.filter(r => {
+                const status = (r.STATUS || "").trim();
+                const dateKey = Object.keys(r).find(key => key.toUpperCase().includes('ENCODED'));
+                const dateVal = (r[dateKey] || "").trim();
+                
+                // Dapat "Reported" ang status AT hindi blangko ang date
+                return status === 'Reported' && dateVal !== "";
+            });
+
+            if (periodKPIs.length > 0) {
+                updateDashboard(periodKPIs, encodedKPIs);
+                buildRanking(encodedKPIs);
                 document.getElementById('sync-status').innerText = 'Data Loaded';
                 document.getElementById('sync-status').className = 'font-bold text-green-300';
             } else {
@@ -194,42 +196,43 @@
             ['total', 'encoded', 'ontime', 'late', 'missing'].forEach(id => document.getElementById('stat-'+id).innerText = '0');
             if(charts.bar) charts.bar.destroy();
             if(charts.pie) charts.pie.destroy();
-            document.getElementById('ranking-body').innerHTML = '<tr><td colspan="3" class="px-6 py-8 text-center text-red-500 bg-red-50 rounded-xl">⚠️ Walang data para sa napiling period.</td></tr>';
+            document.getElementById('ranking-body').innerHTML = '<tr><td colspan="3" class="px-6 py-8 text-center text-red-500 bg-red-50 rounded-xl">⚠️ Walang data para sa period na ito.</td></tr>';
         }
 
-        function updateDashboard(rows) {
-            const total = rows.length; 
-            const encoded = rows.length; 
-            const onTime = rows.filter(r => (r['WITHIN DEADLINE'] || "").trim() === 'On Time').length;
-            const late = rows.filter(r => (r['WITHIN DEADLINE'] || "").trim() === 'Late').length;
-            const missing = total - encoded; 
+        function updateDashboard(allRows, encodedRows) {
+            const total = allRows.length; 
+            const encodedCount = encodedRows.length;
+            const onTime = encodedRows.filter(r => (r['WITHIN DEADLINE'] || "").trim() === 'On Time').length;
+            const late = encodedRows.filter(r => (r['WITHIN DEADLINE'] || "").trim() === 'Late').length;
+            const missing = total - encodedCount; 
 
             let totalRateSum = 0;
-            rows.forEach(r => {
+            encodedRows.forEach(r => {
                 const rate = parseFloat((r['ACCOMPLISHMENT RATE'] || "0").replace('%', '')) || 0;
                 totalRateSum += rate;
             });
             
-            const avgAccomplishment = (totalRateSum / total).toFixed(2);
-            const compliance = ((encoded / total) * 100).toFixed(2);
+            // Average ay base lang sa mga validly encoded
+            const avgAccomplishment = encodedCount > 0 ? (totalRateSum / encodedCount).toFixed(2) : "0.00";
+            const compliance = total > 0 ? ((encodedCount / total) * 100).toFixed(2) : "0.00";
 
             document.getElementById('stat-avg').innerText = avgAccomplishment + '%';
             document.getElementById('stat-comp').innerText = compliance + '%';
             document.getElementById('stat-total').innerText = total;
-            document.getElementById('stat-encoded').innerText = encoded;
+            document.getElementById('stat-encoded').innerText = encodedCount;
             document.getElementById('stat-ontime').innerText = onTime;
             document.getElementById('stat-late').innerText = late;
             document.getElementById('stat-missing').innerText = missing;
 
             const grouped = {};
-            rows.forEach(r => {
+            encodedRows.forEach(r => {
                 const office = (r.OFFICE || "Unknown").trim();
                 const rate = parseFloat((r['ACCOMPLISHMENT RATE'] || "0").replace('%', '')) || 0;
                 if (!grouped[office]) grouped[office] = { sum: 0, count: 0 };
                 grouped[office].sum += rate; grouped[office].count += 1;
             });
 
-            renderCharts(Object.keys(grouped), Object.keys(grouped).map(l => (grouped[l].sum / grouped[l].count).toFixed(2)), encoded, missing);
+            renderCharts(Object.keys(grouped), Object.keys(grouped).map(l => (grouped[l].sum / grouped[l].count).toFixed(2)), encodedCount, missing);
         }
 
         function renderCharts(labels, dataValues, encoded, missing) {
@@ -261,7 +264,7 @@
                             formatter: (value, ctx) => {
                                 let sum = 0;
                                 ctx.chart.data.datasets[0].data.map(d => sum += d);
-                                return (value * 100 / sum).toFixed(0) + "%";
+                                return sum > 0 ? (value * 100 / sum).toFixed(0) + "%" : "";
                             }
                         }
                     } 
@@ -273,14 +276,11 @@
             const officeDates = {};
             rows.forEach(r => {
                 const office = (r.OFFICE || "Unknown").trim();
-                const status = (r.STATUS || "").trim();
                 const dateKey = Object.keys(r).find(key => key.toUpperCase().includes('ENCODED'));
                 const dateStr = (r[dateKey] || "").trim();
-                if (dateStr && status === 'Reported') {
-                    const dateObj = new Date(dateStr);
-                    if (!isNaN(dateObj)) {
-                        if (!officeDates[office] || dateObj < officeDates[office]) officeDates[office] = dateObj;
-                    }
+                const dateObj = new Date(dateStr);
+                if (!isNaN(dateObj)) {
+                    if (!officeDates[office] || dateObj < officeDates[office]) officeDates[office] = dateObj;
                 }
             });
 
