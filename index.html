@@ -3,65 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ITRMC DASHBOARD - Q1 2026</title>
+    <title>ITRMC DASHBOARD</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
-    <style>
-        .card-gradient { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); }
-    </style>
 </head>
 <body class="bg-gray-100 min-h-screen pb-10">
 
-    <nav class="card-gradient p-6 text-white shadow-lg mb-8">
+    <nav class="bg-[#2d5ebd] p-5 text-white shadow-md mb-8">
         <div class="container mx-auto flex justify-between items-center">
             <div>
-                <h1 class="text-2xl font-bold tracking-tight uppercase text-white">ITRMC DASHBOARD</h1>
-                <p class="text-blue-100 text-sm font-medium">Q1 2026 Monitoring | Performance Tracking</p>
+                <h1 class="text-2xl font-bold tracking-wide">ITRMC DASHBOARD</h1>
+                <p class="text-sm text-blue-100">Accomplishment Monitoring System</p>
             </div>
-            <div class="text-right text-xs opacity-90 font-mono">
-                STATUS: <span id="sync-status" class="bg-blue-900 px-2 py-1 rounded">CHECKING...</span>
+            <div class="text-right text-xs opacity-90">
+                Data Source: Google Sheets CSV<br>
+                Status: <span id="sync-status" class="font-bold text-yellow-300">Syncing...</span>
             </div>
         </div>
     </nav>
 
     <div class="container mx-auto px-4">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            <div class="bg-white p-5 rounded-xl shadow-sm border-b-4 border-blue-500 text-center">
-                <p class="text-gray-500 text-xs font-bold uppercase">Total Q1 Indicators</p>
-                <h2 id="stat-total" class="text-4xl font-black text-gray-800">0</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-lg shadow-sm border-b-4 border-blue-500">
+                <p class="text-gray-500 text-xs font-bold uppercase mb-2">Total Indicators</p>
+                <h2 id="stat-total" class="text-3xl font-black text-gray-800">0</h2>
             </div>
-            <div class="bg-white p-5 rounded-xl shadow-sm border-b-4 border-green-500 text-center">
-                <p class="text-gray-500 text-xs font-bold uppercase">Reported</p>
-                <h2 id="stat-reported" class="text-4xl font-black text-green-600">0</h2>
+            <div class="bg-white p-6 rounded-lg shadow-sm border-b-4 border-green-500">
+                <p class="text-gray-500 text-xs font-bold uppercase mb-2">Reported</p>
+                <h2 id="stat-reported" class="text-3xl font-black text-green-600">0</h2>
             </div>
-            <div class="bg-white p-5 rounded-xl shadow-sm border-b-4 border-yellow-500 text-center">
-                <p class="text-gray-500 text-xs font-bold uppercase">On Time</p>
-                <h2 id="stat-ontime" class="text-4xl font-black text-yellow-600">0</h2>
+            <div class="bg-white p-6 rounded-lg shadow-sm border-b-4 border-yellow-500">
+                <p class="text-gray-500 text-xs font-bold uppercase mb-2">On Time</p>
+                <h2 id="stat-ontime" class="text-3xl font-black text-yellow-600">0</h2>
             </div>
-            <div class="bg-white p-5 rounded-xl shadow-sm border-b-4 border-red-500 text-center">
-                <p class="text-gray-500 text-xs font-bold uppercase">Pending/Late</p>
-                <h2 id="stat-pending" class="text-4xl font-black text-red-600">0</h2>
+            <div class="bg-white p-6 rounded-lg shadow-sm border-b-4 border-red-500">
+                <p class="text-gray-500 text-xs font-bold uppercase mb-2">Pending</p>
+                <h2 id="stat-pending" class="text-3xl font-black text-red-600">0</h2>
             </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div class="bg-white p-6 rounded-2xl shadow-sm">
-                <h3 class="text-gray-700 font-bold mb-4 flex items-center italic">
-                    <span class="w-3 h-3 bg-blue-600 rounded-full mr-2"></span>
-                    Performance per Office (Q1 2026)
+            <div class="bg-white p-6 rounded-lg shadow-sm">
+                <h3 class="text-gray-700 font-bold mb-6 flex items-center text-sm">
+                    <span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                    Accomplishment Rate per Office (%)
                 </h3>
-                <div class="relative" style="height:450px">
+                <div class="relative" style="height:350px">
                     <canvas id="barChart"></canvas>
                 </div>
             </div>
 
-            <div class="bg-white p-6 rounded-2xl shadow-sm flex flex-col items-center">
-                <h3 class="text-gray-700 font-bold mb-4 w-full text-left italic">
-                    <span class="w-3 h-3 bg-green-500 rounded-full mr-2"></span>
-                    Submission Status Overview
+            <div class="bg-white p-6 rounded-lg shadow-sm">
+                <h3 class="text-gray-700 font-bold mb-6 flex items-center text-sm">
+                    <span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                    Submission Overview
                 </h3>
-                <div class="max-w-[300px] w-full mt-10">
+                <div class="max-w-[250px] mx-auto mt-4">
                     <canvas id="pieChart"></canvas>
                 </div>
             </div>
@@ -71,112 +70,103 @@
     <script>
         const CSV_LINK = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSk0F8K5bfpkZ6Q8JUoDBZ68NqTfiW-r8F9s165g7inDSvnVwrQNBU8Dlw2WPOPeqzVCxSl3Emuix4E/pub?gid=890592255&single=true&output=csv&cache=' + Date.now();
 
-        let barChartInstance = null;
-        let pieChartInstance = null;
+        let charts = {};
 
         function init() {
-            document.getElementById('sync-status').innerText = 'LOADING...';
-            
             Papa.parse(CSV_LINK, {
                 download: true,
                 header: true,
                 skipEmptyLines: true,
                 complete: function(results) {
-                    const allData = results.data;
+                    const data = results.data;
                     
-                    // --- ANG ULTIMATE FILTER MO ---
-                    const validRows = allData.filter(r => {
+                    // YUNG STRICT FILTER MO KAYA MAGIGING 14 ITO:
+                    const validRows = data.filter(r => {
                         const q = (r.QUARTER || "").trim().toUpperCase();
                         const y = (r.YEAR || "").trim();
                         const rate = (r['ACCOMPLISHMENT RATE'] || "").trim();
-                        const office = (r.OFFICE || "").trim();
 
-                        // Tignan kung pasok sa lahat ng requirements:
-                        const isQ1 = (q === 'Q1');
-                        const is2026 = (y === '2026');
-                        const hasOffice = (office !== "");
-                        const hasRate = (rate !== "" && rate !== "0" && rate !== "Not Reported"); // DAPAT MAY LAMAN
-
-                        return isQ1 && is2026 && hasOffice && hasRate;
+                        // Dapat Q1, 2026, at HINDI blanko ang rate
+                        return q === 'Q1' && y === '2026' && rate !== "";
                     });
 
                     if (validRows.length > 0) {
                         updateDashboard(validRows);
-                        document.getElementById('sync-status').innerText = 'LIVE (STRICT FILTER)';
-                        document.getElementById('sync-status').className = 'text-green-400 font-bold';
+                        document.getElementById('sync-status').innerText = 'Data Loaded';
+                        document.getElementById('sync-status').className = 'font-bold text-green-300';
                     } else {
-                        document.getElementById('stat-total').innerText = "0";
-                        document.getElementById('sync-status').innerText = 'NO VALID DATA';
+                        document.getElementById('sync-status').innerText = 'Error: No Data Found';
                     }
                 }
             });
         }
 
         function updateDashboard(rows) {
-            const total = rows.length; 
+            // Bilangan
+            const total = rows.length; // Siguradong 14 ito
             const reported = rows.filter(r => (r.STATUS || "").trim() === 'Reported').length;
             const onTime = rows.filter(r => (r['WITHIN DEADLINE'] || "").trim() === 'On Time').length;
+            const pending = total - reported;
 
+            // I-update ang UI Cards
             document.getElementById('stat-total').innerText = total;
             document.getElementById('stat-reported').innerText = reported;
             document.getElementById('stat-ontime').innerText = onTime;
-            document.getElementById('stat-pending').innerText = total - reported;
+            document.getElementById('stat-pending').innerText = pending;
 
-            // Grouping for Bar Chart (Averaging)
+            // Pagsamahin ang Rate per Office
             const grouped = {};
             rows.forEach(r => {
-                // Babasahin lang yung rate kung status ay Reported
-                if ((r.STATUS || "").trim() === 'Reported') {
-                    const office = r.OFFICE.trim();
-                    const rate = parseFloat((r['ACCOMPLISHMENT RATE'] || "0").replace('%', '')) || 0;
-                    
-                    if (!grouped[office]) grouped[office] = { sum: 0, count: 0 };
-                    grouped[office].sum += rate;
-                    grouped[office].count += 1;
-                }
+                const office = (r.OFFICE || "Unknown").trim();
+                const rate = parseFloat((r['ACCOMPLISHMENT RATE'] || "0").replace('%', '')) || 0;
+                
+                if (!grouped[office]) grouped[office] = { sum: 0, count: 0 };
+                grouped[office].sum += rate;
+                grouped[office].count += 1;
             });
 
             const labels = Object.keys(grouped);
-            const dataValues = labels.map(l => (grouped[l].sum / grouped[l].count).toFixed(1));
+            const dataValues = labels.map(l => (grouped[l].sum / grouped[l].count).toFixed(2));
 
-            renderCharts(labels, dataValues, reported, total);
+            renderCharts(labels, dataValues, reported, pending);
         }
 
-        function renderCharts(labels, dataValues, reported, total) {
-            if(barChartInstance) barChartInstance.destroy();
-            if(pieChartInstance) pieChartInstance.destroy();
+        function renderCharts(labels, dataValues, reported, pending) {
+            if(charts.bar) charts.bar.destroy();
+            if(charts.pie) charts.pie.destroy();
 
             // Bar Chart
-            barChartInstance = new Chart(document.getElementById('barChart'), {
+            charts.bar = new Chart(document.getElementById('barChart'), {
                 type: 'bar',
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: 'Avg Accomplishment %',
+                        label: 'Average Rate (%)',
                         data: dataValues,
-                        backgroundColor: '#2563eb',
-                        borderRadius: 5
+                        backgroundColor: '#3b82f6', // Blue color
+                        borderRadius: 4
                     }]
                 },
                 options: { 
                     indexAxis: 'y', 
                     maintainAspectRatio: false,
-                    scales: { x: { beginAtZero: true, max: 100 } }
+                    plugins: { legend: { display: false } },
+                    scales: { x: { beginAtZero: true } }
                 }
             });
 
             // Pie Chart
-            pieChartInstance = new Chart(document.getElementById('pieChart'), {
+            charts.pie = new Chart(document.getElementById('pieChart'), {
                 type: 'doughnut',
                 data: {
                     labels: ['Reported', 'Pending'],
                     datasets: [{
-                        data: [reported, total - reported],
-                        backgroundColor: ['#10b981', '#f87171'],
+                        data: [reported, pending],
+                        backgroundColor: ['#22c55e', '#ef4444'], // Green and Red
                         borderWidth: 0
                     }]
                 },
-                options: { cutout: '70%' }
+                options: { cutout: '75%', plugins: { legend: { position: 'bottom' } } }
             });
         }
 
