@@ -9,15 +9,15 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
 </head>
-<body class="bg-gray-100 min-h-screen pb-10">
+<body class="bg-gray-100 min-h-screen pb-6">
 
-    <nav class="bg-[#2d5ebd] p-5 text-white shadow-md mb-8">
+    <nav class="bg-[#2d5ebd] px-5 py-3 text-white shadow-md mb-4">
         <div class="container mx-auto flex justify-between items-center">
             <div>
-                <h1 class="text-2xl font-bold tracking-wide">ITRMC DASHBOARD</h1>
-                <p class="text-sm text-blue-100">Accomplishment Monitoring System</p>
+                <h1 class="text-xl font-bold tracking-wide">ITRMC DASHBOARD</h1>
+                <p class="text-xs text-blue-100">Accomplishment Monitoring System</p>
             </div>
-            <div class="text-right text-xs opacity-90">
+            <div class="text-right text-[10px] opacity-90">
                 Data Source: Google Sheets CSV<br>
                 Status: <span id="sync-status" class="font-bold text-yellow-300">Syncing...</span>
             </div>
@@ -26,75 +26,72 @@
 
     <div class="container mx-auto px-4">
         
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
-            <div class="bg-white p-6 rounded-lg shadow-sm border-b-4 border-blue-600 text-center">
-                <p class="text-gray-500 text-sm font-bold uppercase mb-2">Average Accomplishment</p>
-                <h2 id="stat-avg" class="text-5xl font-black text-blue-700">0.00%</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div class="bg-white py-4 px-6 rounded-lg shadow-sm border-b-4 border-blue-600 text-center">
+                <p class="text-gray-500 text-xs font-bold uppercase mb-1">Average Accomplishment</p>
+                <h2 id="stat-avg" class="text-4xl font-black text-blue-700">0.00%</h2>
             </div>
-            <div class="bg-white p-6 rounded-lg shadow-sm border-b-4 border-teal-500 text-center">
-                <p class="text-gray-500 text-sm font-bold uppercase mb-2">Overall Compliance</p>
-                <h2 id="stat-comp" class="text-5xl font-black text-teal-600">0.00%</h2>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-            <div class="bg-white p-4 rounded-lg shadow-sm border-b-4 border-gray-400 text-center">
-                <p class="text-gray-500 text-[10px] sm:text-xs font-bold uppercase mb-1">Total KPI</p>
-                <h2 id="stat-total" class="text-3xl font-black text-gray-800">0</h2>
-            </div>
-            <div class="bg-white p-4 rounded-lg shadow-sm border-b-4 border-blue-400 text-center">
-                <p class="text-gray-500 text-[10px] sm:text-xs font-bold uppercase mb-1">Encoded KPI</p>
-                <h2 id="stat-encoded" class="text-3xl font-black text-blue-600">0</h2>
-            </div>
-            <div class="bg-white p-4 rounded-lg shadow-sm border-b-4 border-green-500 text-center">
-                <p class="text-gray-500 text-[10px] sm:text-xs font-bold uppercase mb-1">On-Time</p>
-                <h2 id="stat-ontime" class="text-3xl font-black text-green-600">0</h2>
-            </div>
-            <div class="bg-white p-4 rounded-lg shadow-sm border-b-4 border-yellow-500 text-center">
-                <p class="text-gray-500 text-[10px] sm:text-xs font-bold uppercase mb-1">Late</p>
-                <h2 id="stat-late" class="text-3xl font-black text-yellow-600">0</h2>
-            </div>
-            <div class="bg-white p-4 rounded-lg shadow-sm border-b-4 border-red-500 text-center">
-                <p class="text-gray-500 text-[10px] sm:text-xs font-bold uppercase mb-1">Not Submitted</p>
-                <h2 id="stat-missing" class="text-3xl font-black text-red-600">0</h2>
+            <div class="bg-white py-4 px-6 rounded-lg shadow-sm border-b-4 border-teal-500 text-center">
+                <p class="text-gray-500 text-xs font-bold uppercase mb-1">Overall Compliance</p>
+                <h2 id="stat-comp" class="text-4xl font-black text-teal-600">0.00%</h2>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-            <div class="bg-white p-6 rounded-lg shadow-sm lg:col-span-2">
-                <h3 class="text-gray-700 font-bold mb-6 flex items-center text-sm">
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
+            <div class="bg-white p-3 rounded-lg shadow-sm border-b-4 border-gray-400 text-center">
+                <p class="text-gray-500 text-[10px] sm:text-[11px] font-bold uppercase mb-1">Total KPI</p>
+                <h2 id="stat-total" class="text-2xl font-black text-gray-800">0</h2>
+            </div>
+            <div class="bg-white p-3 rounded-lg shadow-sm border-b-4 border-blue-400 text-center">
+                <p class="text-gray-500 text-[10px] sm:text-[11px] font-bold uppercase mb-1">Encoded KPI</p>
+                <h2 id="stat-encoded" class="text-2xl font-black text-blue-600">0</h2>
+            </div>
+            <div class="bg-white p-3 rounded-lg shadow-sm border-b-4 border-green-500 text-center">
+                <p class="text-gray-500 text-[10px] sm:text-[11px] font-bold uppercase mb-1">On-Time</p>
+                <h2 id="stat-ontime" class="text-2xl font-black text-green-600">0</h2>
+            </div>
+            <div class="bg-white p-3 rounded-lg shadow-sm border-b-4 border-yellow-500 text-center">
+                <p class="text-gray-500 text-[10px] sm:text-[11px] font-bold uppercase mb-1">Late</p>
+                <h2 id="stat-late" class="text-2xl font-black text-yellow-600">0</h2>
+            </div>
+            <div class="bg-white p-3 rounded-lg shadow-sm border-b-4 border-red-500 text-center">
+                <p class="text-gray-500 text-[10px] sm:text-[11px] font-bold uppercase mb-1">Not Submitted</p>
+                <h2 id="stat-missing" class="text-2xl font-black text-red-600">0</h2>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-4">
+            <div class="bg-white p-4 rounded-lg shadow-sm lg:col-span-2">
+                <h3 class="text-gray-700 font-bold mb-3 flex items-center text-sm">
                     <span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
                     Accomplishment Rate per Office (%)
                 </h3>
-                <div class="relative" style="height:350px">
-                    <canvas id="barChart"></canvas>
+                <div class="relative" style="height:260px"> <canvas id="barChart"></canvas>
                 </div>
             </div>
 
-            <div class="bg-white p-6 rounded-lg shadow-sm">
-                <h3 class="text-gray-700 font-bold mb-6 flex items-center text-sm">
+            <div class="bg-white p-4 rounded-lg shadow-sm">
+                <h3 class="text-gray-700 font-bold mb-3 flex items-center text-sm">
                     <span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
                     Submission Overview
                 </h3>
-                <div class="max-w-[250px] mx-auto mt-4">
-                    <canvas id="pieChart"></canvas>
+                <div class="max-w-[200px] mx-auto mt-2"> <canvas id="pieChart"></canvas>
                 </div>
             </div>
         </div>
 
-        <div class="bg-white p-6 rounded-lg shadow-sm border-t-4 border-purple-500">
-            <h3 class="text-purple-700 font-bold mb-4 flex items-center">
+        <div class="bg-white p-4 rounded-lg shadow-sm border-t-4 border-purple-500">
+            <h3 class="text-purple-700 font-bold mb-2 flex items-center text-sm">
                 🏆 Early Bird Ranking (Q1 Earliest Submissions)
             </h3>
-            <p class="text-xs text-gray-500 mb-4">Ito ang listahan ng mga Division base sa kung sino ang pinakaunang nag-encode ng kanilang Accomplishment Report.</p>
             
             <div class="overflow-x-auto">
-                <table class="w-full text-sm text-left text-gray-600">
+                <table class="w-full text-xs text-left text-gray-600">
                     <thead class="text-xs text-gray-700 uppercase bg-gray-50">
                         <tr>
-                            <th class="px-6 py-3 rounded-tl-lg">Rank</th>
-                            <th class="px-6 py-3">Office / Division</th>
-                            <th class="px-6 py-3 rounded-tr-lg">Date & Time Encoded</th>
+                            <th class="px-4 py-2 rounded-tl-lg">Rank</th>
+                            <th class="px-4 py-2">Office / Division</th>
+                            <th class="px-4 py-2 rounded-tr-lg">Date & Time Encoded</th>
                         </tr>
                     </thead>
                     <tbody id="ranking-body">
@@ -143,12 +140,11 @@
 
         function updateDashboard(rows) {
             const total = rows.length; 
-            const encoded = rows.length; // Same sa total dahil naka-filter na yung may laman
+            const encoded = rows.length; 
             const onTime = rows.filter(r => (r['WITHIN DEADLINE'] || "").trim() === 'On Time').length;
             const late = rows.filter(r => (r['WITHIN DEADLINE'] || "").trim() === 'Late').length;
-            const missing = total - encoded; // Laging 0 muna ito base sa filter mo
+            const missing = total - encoded; 
 
-            // Computations para sa 2 Malaking Cards
             let totalRateSum = 0;
             rows.forEach(r => {
                 const rate = parseFloat((r['ACCOMPLISHMENT RATE'] || "0").replace('%', '')) || 0;
@@ -158,7 +154,6 @@
             const avgAccomplishment = total > 0 ? (totalRateSum / total).toFixed(2) : "0.00";
             const compliance = total > 0 ? ((encoded / total) * 100).toFixed(2) : "0.00";
 
-            // Pasok ang text sa UI
             document.getElementById('stat-avg').innerText = avgAccomplishment + '%';
             document.getElementById('stat-comp').innerText = compliance + '%';
             
@@ -168,7 +163,6 @@
             document.getElementById('stat-late').innerText = late;
             document.getElementById('stat-missing').innerText = missing;
 
-            // Grouping para sa Bar Chart
             const grouped = {};
             rows.forEach(r => {
                 const office = (r.OFFICE || "Unknown").trim();
@@ -207,15 +201,14 @@
                         legend: { display: false },
                         datalabels: {
                             anchor: 'end', align: 'right', color: '#1e3a8a',
-                            font: { weight: 'bold', size: 12 },
+                            font: { weight: 'bold', size: 11 },
                             formatter: function(value) { return value + '%'; }
                         }
                     },
-                    scales: { x: { beginAtZero: true, grace: '20%' } }
+                    scales: { x: { beginAtZero: true, grace: '15%' } }
                 }
             });
 
-            // Binago ang label para mag-match sa Encoded KPI
             charts.pie = new Chart(document.getElementById('pieChart'), {
                 type: 'doughnut',
                 data: {
@@ -226,7 +219,7 @@
                         borderWidth: 0
                     }]
                 },
-                options: { cutout: '75%', plugins: { legend: { position: 'bottom' }, datalabels: { display: false } } }
+                options: { cutout: '70%', plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } }, datalabels: { display: false } } }
             });
         }
 
@@ -238,55 +231,4 @@
                 const office = (r.OFFICE || "Unknown").trim();
                 const status = (r.STATUS || "").trim();
                 
-                const dateKey = Object.keys(r).find(key => key.toUpperCase().includes('ENCODED'));
-                const dateStr = dateKey ? (r[dateKey] || "").trim() : "";
-
-                if (dateStr && status === 'Reported') {
-                    const dateObj = new Date(dateStr);
-                    if (!isNaN(dateObj)) {
-                        dateFound = true;
-                        if (!officeDates[office] || dateObj < officeDates[office]) {
-                            officeDates[office] = dateObj;
-                        }
-                    }
-                }
-            });
-
-            const rankedOffices = Object.keys(officeDates).map(office => {
-                return { office: office, date: officeDates[office] };
-            }).sort((a, b) => a.date - b.date);
-
-            let html = '';
-            rankedOffices.forEach((item, index) => {
-                const dateDisplay = item.date.toLocaleString('en-US', { 
-                    month: 'short', day: 'numeric', year: 'numeric', 
-                    hour: 'numeric', minute: '2-digit', hour12: true 
-                });
-
-                let rankBadge = `<span class="font-bold text-gray-500">${index + 1}</span>`;
-                if(index === 0) rankBadge = `<span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full font-bold text-xs">🥇 1st</span>`;
-                if(index === 1) rankBadge = `<span class="px-3 py-1 bg-gray-200 text-gray-700 rounded-full font-bold text-xs">🥈 2nd</span>`;
-                if(index === 2) rankBadge = `<span class="px-3 py-1 bg-orange-100 text-orange-700 rounded-full font-bold text-xs">🥉 3rd</span>`;
-
-                html += `
-                    <tr class="bg-white border-b hover:bg-gray-50 transition">
-                        <td class="px-6 py-4">${rankBadge}</td>
-                        <td class="px-6 py-4 font-bold text-blue-900">${item.office}</td>
-                        <td class="px-6 py-4 font-mono text-xs">${dateDisplay}</td>
-                    </tr>
-                `;
-            });
-
-            if(!dateFound) {
-                html = `<tr><td colspan="3" class="px-6 py-8 text-center text-red-500 bg-red-50 rounded-lg">
-                    ⚠️ System Message: Wala pang nare-record na oras ng submission.
-                </td></tr>`;
-            }
-
-            document.getElementById('ranking-body').innerHTML = html;
-        }
-
-        window.onload = init;
-    </script>
-</body>
-</html>
+                const dateKey = Object.keys(r).find(key => key.toUpperCase().
