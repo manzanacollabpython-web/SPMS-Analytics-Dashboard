@@ -9,91 +9,101 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
 </head>
-<body class="bg-gray-100 min-h-screen pb-6">
+<body class="bg-gray-50 min-h-screen pb-12">
 
-    <nav class="bg-[#2d5ebd] px-5 py-3 text-white shadow-md mb-4">
+    <nav class="bg-[#2d5ebd] px-6 py-4 text-white shadow-md mb-8">
         <div class="container mx-auto flex justify-between items-center">
             <div>
-                <h1 class="text-xl font-bold tracking-wide">ITRMC DASHBOARD</h1>
-                <p class="text-xs text-blue-100">Accomplishment Monitoring System</p>
+                <h1 class="text-2xl font-bold tracking-wide">ITRMC DASHBOARD</h1>
+                <p class="text-sm text-blue-100">Accomplishment Monitoring System</p>
             </div>
-            <div class="text-right text-[10px] opacity-90">
+            <div class="text-right text-xs opacity-90">
                 Data Source: Google Sheets CSV<br>
                 Status: <span id="sync-status" class="font-bold text-yellow-300">Syncing...</span>
             </div>
         </div>
     </nav>
 
-    <div class="container mx-auto px-4">
+    <div class="container mx-auto px-4 min-h-[85vh]">
         
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div class="bg-white py-4 px-6 rounded-lg shadow-sm border-b-4 border-blue-600 text-center">
-                <p class="text-gray-500 text-xs font-bold uppercase mb-1">Average Accomplishment</p>
-                <h2 id="stat-avg" class="text-4xl font-black text-blue-700">0.00%</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div class="bg-white py-6 px-8 rounded-xl shadow-sm border-b-4 border-blue-600 text-center">
+                <p class="text-gray-500 text-sm font-bold uppercase mb-2">Average Accomplishment</p>
+                <h2 id="stat-avg" class="text-5xl font-black text-blue-700">0.00%</h2>
             </div>
-            <div class="bg-white py-4 px-6 rounded-lg shadow-sm border-b-4 border-teal-500 text-center">
-                <p class="text-gray-500 text-xs font-bold uppercase mb-1">Overall Compliance</p>
-                <h2 id="stat-comp" class="text-4xl font-black text-teal-600">0.00%</h2>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
-            <div class="bg-white p-3 rounded-lg shadow-sm border-b-4 border-gray-400 text-center">
-                <p class="text-gray-500 text-[10px] sm:text-[11px] font-bold uppercase mb-1">Total KPI</p>
-                <h2 id="stat-total" class="text-2xl font-black text-gray-800">0</h2>
-            </div>
-            <div class="bg-white p-3 rounded-lg shadow-sm border-b-4 border-blue-400 text-center">
-                <p class="text-gray-500 text-[10px] sm:text-[11px] font-bold uppercase mb-1">Encoded KPI</p>
-                <h2 id="stat-encoded" class="text-2xl font-black text-blue-600">0</h2>
-            </div>
-            <div class="bg-white p-3 rounded-lg shadow-sm border-b-4 border-green-500 text-center">
-                <p class="text-gray-500 text-[10px] sm:text-[11px] font-bold uppercase mb-1">On-Time</p>
-                <h2 id="stat-ontime" class="text-2xl font-black text-green-600">0</h2>
-            </div>
-            <div class="bg-white p-3 rounded-lg shadow-sm border-b-4 border-yellow-500 text-center">
-                <p class="text-gray-500 text-[10px] sm:text-[11px] font-bold uppercase mb-1">Late</p>
-                <h2 id="stat-late" class="text-2xl font-black text-yellow-600">0</h2>
-            </div>
-            <div class="bg-white p-3 rounded-lg shadow-sm border-b-4 border-red-500 text-center">
-                <p class="text-gray-500 text-[10px] sm:text-[11px] font-bold uppercase mb-1">Not Submitted</p>
-                <h2 id="stat-missing" class="text-2xl font-black text-red-600">0</h2>
+            <div class="bg-white py-6 px-8 rounded-xl shadow-sm border-b-4 border-teal-500 text-center">
+                <p class="text-gray-500 text-sm font-bold uppercase mb-2">Overall Compliance</p>
+                <h2 id="stat-comp" class="text-5xl font-black text-teal-600">0.00%</h2>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-4">
-            <div class="bg-white p-4 rounded-lg shadow-sm lg:col-span-2">
-                <h3 class="text-gray-700 font-bold mb-3 flex items-center text-sm">
-                    <span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+            <div class="bg-white p-4 rounded-xl shadow-sm border-b-4 border-gray-400 text-center">
+                <p class="text-gray-500 text-xs font-bold uppercase mb-1">Total KPI</p>
+                <h2 id="stat-total" class="text-3xl font-black text-gray-800">0</h2>
+            </div>
+            <div class="bg-white p-4 rounded-xl shadow-sm border-b-4 border-blue-400 text-center">
+                <p class="text-gray-500 text-xs font-bold uppercase mb-1">Encoded KPI</p>
+                <h2 id="stat-encoded" class="text-3xl font-black text-blue-600">0</h2>
+            </div>
+            <div class="bg-white p-4 rounded-xl shadow-sm border-b-4 border-green-500 text-center">
+                <p class="text-gray-500 text-xs font-bold uppercase mb-1">On-Time</p>
+                <h2 id="stat-ontime" class="text-3xl font-black text-green-600">0</h2>
+            </div>
+            <div class="bg-white p-4 rounded-xl shadow-sm border-b-4 border-yellow-500 text-center">
+                <p class="text-gray-500 text-xs font-bold uppercase mb-1">Late</p>
+                <h2 id="stat-late" class="text-3xl font-black text-yellow-600">0</h2>
+            </div>
+            <div class="bg-white p-4 rounded-xl shadow-sm border-b-4 border-red-500 text-center">
+                <p class="text-gray-500 text-xs font-bold uppercase mb-1">Not Submitted</p>
+                <h2 id="stat-missing" class="text-3xl font-black text-red-600">0</h2>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="bg-white p-6 rounded-xl shadow-sm lg:col-span-2">
+                <h3 class="text-gray-700 font-bold mb-4 flex items-center text-sm uppercase">
+                    <span class="w-3 h-3 bg-blue-500 rounded-full mr-2"></span>
                     Accomplishment Rate per Office (%)
                 </h3>
-                <div class="relative" style="height:260px">
+                <div class="relative" style="height:350px">
                     <canvas id="barChart"></canvas>
                 </div>
             </div>
 
-            <div class="bg-white p-4 rounded-lg shadow-sm">
-                <h3 class="text-gray-700 font-bold mb-3 flex items-center text-sm">
-                    <span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+            <div class="bg-white p-6 rounded-xl shadow-sm">
+                <h3 class="text-gray-700 font-bold mb-4 flex items-center text-sm uppercase">
+                    <span class="w-3 h-3 bg-blue-500 rounded-full mr-2"></span>
                     Submission Overview
                 </h3>
-                <div class="max-w-[200px] mx-auto mt-2">
+                <div class="max-w-[250px] mx-auto mt-6">
                     <canvas id="pieChart"></canvas>
                 </div>
             </div>
         </div>
 
-        <div class="bg-white p-4 rounded-lg shadow-sm border-t-4 border-purple-500">
-            <h3 class="text-purple-700 font-bold mb-2 flex items-center text-sm">
-                🏆 Early Bird Ranking (Q1 Earliest Submissions)
+    </div>
+
+    <div class="container mx-auto px-4 mt-24">
+        
+        <div class="border-t-2 border-dashed border-gray-300 pt-12 mb-8 text-center opacity-50">
+            <p class="text-gray-400 text-sm uppercase tracking-widest">Scroll down for details</p>
+            <span class="text-2xl">⬇️</span>
+        </div>
+
+        <div class="bg-white p-8 rounded-xl shadow-md border-t-4 border-purple-500 max-w-5xl mx-auto">
+            <h3 class="text-purple-700 font-black text-2xl mb-2 flex items-center justify-center">
+                🏆 EARLY BIRD RANKING
             </h3>
+            <p class="text-sm text-gray-500 mb-8 text-center">Q1 Earliest Submissions - ITRMC Divisions</p>
             
             <div class="overflow-x-auto">
-                <table class="w-full text-xs text-left text-gray-600">
-                    <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                <table class="w-full text-sm text-left text-gray-600">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-100">
                         <tr>
-                            <th class="px-4 py-2 rounded-tl-lg">Rank</th>
-                            <th class="px-4 py-2">Office / Division</th>
-                            <th class="px-4 py-2 rounded-tr-lg">Date & Time Encoded</th>
+                            <th class="px-6 py-4 rounded-tl-lg font-bold">Rank</th>
+                            <th class="px-6 py-4 font-bold">Office / Division</th>
+                            <th class="px-6 py-4 rounded-tr-lg font-bold">Date & Time Encoded</th>
                         </tr>
                     </thead>
                     <tbody id="ranking-body">
@@ -105,7 +115,6 @@
     </div>
 
     <script>
-        // Try-Catch para saluhin kung may error
         try {
             Chart.register(ChartDataLabels);
         } catch(e) {
@@ -149,10 +158,9 @@
                         document.getElementById('sync-status').className = 'font-bold text-red-500';
                     }
                 },
-                // Dinagdagan natin ng ERROR handler kapag pumalya si Google Sheets
                 error: function(err) {
                     console.error("Google Sheets Error:", err);
-                    document.getElementById('sync-status').innerText = 'ERROR: CANNOT FETCH DATA (CORS/RATE LIMIT)';
+                    document.getElementById('sync-status').innerText = 'ERROR: CANNOT FETCH DATA';
                     document.getElementById('sync-status').className = 'font-bold text-red-500';
                 }
             });
@@ -221,7 +229,7 @@
                         legend: { display: false },
                         datalabels: {
                             anchor: 'end', align: 'right', color: '#1e3a8a',
-                            font: { weight: 'bold', size: 11 },
+                            font: { weight: 'bold', size: 12 },
                             formatter: function(value) { return value + '%'; }
                         }
                     },
@@ -277,29 +285,12 @@
                 });
 
                 let rankBadge = `<span class="font-bold text-gray-500">${index + 1}</span>`;
-                if(index === 0) rankBadge = `<span class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded font-bold text-[10px]">🥇 1st</span>`;
-                if(index === 1) rankBadge = `<span class="px-2 py-1 bg-gray-200 text-gray-700 rounded font-bold text-[10px]">🥈 2nd</span>`;
-                if(index === 2) rankBadge = `<span class="px-2 py-1 bg-orange-100 text-orange-700 rounded font-bold text-[10px]">🥉 3rd</span>`;
+                if(index === 0) rankBadge = `<span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full font-bold text-xs">🥇 1st</span>`;
+                if(index === 1) rankBadge = `<span class="px-3 py-1 bg-gray-200 text-gray-700 rounded-full font-bold text-xs">🥈 2nd</span>`;
+                if(index === 2) rankBadge = `<span class="px-3 py-1 bg-orange-100 text-orange-700 rounded-full font-bold text-xs">🥉 3rd</span>`;
 
                 html += `
                     <tr class="bg-white border-b hover:bg-gray-50 transition">
-                        <td class="px-4 py-2">${rankBadge}</td>
-                        <td class="px-4 py-2 font-bold text-blue-900">${item.office}</td>
-                        <td class="px-4 py-2 font-mono text-gray-500">${dateDisplay}</td>
-                    </tr>
-                `;
-            });
-
-            if(!dateFound) {
-                html = `<tr><td colspan="3" class="px-4 py-4 text-center text-red-500 bg-red-50 rounded-lg">
-                    ⚠️ System Message: Wala pang nare-record na oras ng submission.
-                </td></tr>`;
-            }
-
-            document.getElementById('ranking-body').innerHTML = html;
-        }
-
-        window.onload = init;
-    </script>
-</body>
-</html>
+                        <td class="px-6 py-4">${rankBadge}</td>
+                        <td class="px-6 py-4 font-bold text-blue-900">${item.office}</td>
+                        <td class="
