@@ -6,6 +6,7 @@
     <title>ITRMC DASHBOARD</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
 </head>
 <body class="bg-gray-100 min-h-screen pb-10">
@@ -80,13 +81,11 @@
                 complete: function(results) {
                     const data = results.data;
                     
-                    // YUNG STRICT FILTER MO KAYA MAGIGING 14 ITO:
                     const validRows = data.filter(r => {
                         const q = (r.QUARTER || "").trim().toUpperCase();
                         const y = (r.YEAR || "").trim();
                         const rate = (r['ACCOMPLISHMENT RATE'] || "").trim();
 
-                        // Dapat Q1, 2026, at HINDI blanko ang rate
                         return q === 'Q1' && y === '2026' && rate !== "";
                     });
 
@@ -102,19 +101,16 @@
         }
 
         function updateDashboard(rows) {
-            // Bilangan
-            const total = rows.length; // Siguradong 14 ito
+            const total = rows.length; 
             const reported = rows.filter(r => (r.STATUS || "").trim() === 'Reported').length;
             const onTime = rows.filter(r => (r['WITHIN DEADLINE'] || "").trim() === 'On Time').length;
             const pending = total - reported;
 
-            // I-update ang UI Cards
             document.getElementById('stat-total').innerText = total;
             document.getElementById('stat-reported').innerText = reported;
             document.getElementById('stat-ontime').innerText = onTime;
             document.getElementById('stat-pending').innerText = pending;
 
-            // Pagsamahin ang Rate per Office
             const grouped = {};
             rows.forEach(r => {
                 const office = (r.OFFICE || "Unknown").trim();
@@ -135,38 +131,63 @@
             if(charts.bar) charts.bar.destroy();
             if(charts.pie) charts.pie.destroy();
 
-            // Bar Chart
+            // Bar Chart (May labels na)
             charts.bar = new Chart(document.getElementById('barChart'), {
                 type: 'bar',
+                plugins: [ChartDataLabels], // Idinagdag ang plugin dito
                 data: {
                     labels: labels,
                     datasets: [{
                         label: 'Average Rate (%)',
                         data: dataValues,
-                        backgroundColor: '#3b82f6', // Blue color
+                        backgroundColor: '#3b82f6', 
                         borderRadius: 4
                     }]
                 },
                 options: { 
                     indexAxis: 'y', 
                     maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: { x: { beginAtZero: true } }
+                    plugins: { 
+                        legend: { display: false },
+                        // Setting para sa pwesto at itsura ng labels
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'end',
+                            color: '#1e3a8a',
+                            font: { weight: 'bold' },
+                            formatter: function(value) {
+                                return value + '%';
+                            }
+                        }
+                    },
+                    scales: { 
+                        x: { 
+                            beginAtZero: true,
+                            grace: '15%' // Dinagdagan ng space sa kanan para hindi maputol ang label
+                        } 
+                    }
                 }
             });
 
-            // Pie Chart
+            // Pie Chart (Pinatay ang labels dito para hindi makalat)
             charts.pie = new Chart(document.getElementById('pieChart'), {
                 type: 'doughnut',
+                plugins: [ChartDataLabels],
                 data: {
                     labels: ['Reported', 'Pending'],
                     datasets: [{
                         data: [reported, pending],
-                        backgroundColor: ['#22c55e', '#ef4444'], // Green and Red
+                        backgroundColor: ['#22c55e', '#ef4444'],
                         borderWidth: 0
                     }]
                 },
-                options: { cutout: '75%', plugins: { legend: { position: 'bottom' } } }
+                options: { 
+                    cutout: '75%', 
+                    plugins: { 
+                        legend: { position: 'bottom' },
+                        datalabels: { display: false } // Walang labels sa pie chart
+                    } 
+                }
             });
         }
 
