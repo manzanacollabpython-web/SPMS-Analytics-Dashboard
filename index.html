@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ITRMC DASHBOARD</title>
+    <title>ITRMC DASHBOARD - Strict Logic</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
@@ -28,21 +28,20 @@
 
     <div class="sidebar flex flex-col">
         <div class="p-6 border-b border-[#30363d]">
-            <h1 class="text-sm font-black text-[#f0f6fc] tracking-tight">ITRMC MENU</h1>
+            <h1 class="text-sm font-black text-[#f0f6fc] tracking-tight text-center">ITRMC SYSTEM</h1>
         </div>
         <nav class="flex-grow p-4">
             <div onclick="switchView('main')" id="menu-main" class="nav-item active-nav">📊 Dashboard</div>
             <div onclick="switchView('annual')" id="menu-annual" class="nav-item">📈 Annual Perf</div>
-            <div class="nav-item">👤 User Settings</div>
         </nav>
-        <div class="p-4 border-t border-[#30363d] text-[10px] text-center text-[#484f58] font-bold">SYSTEM V2.0.26</div>
+        <div class="p-4 border-t border-[#30363d] text-[10px] text-center text-[#484f58] font-bold">V 2.0.26</div>
     </div>
 
     <div class="main-content">
         <header class="bg-[#161b22] px-6 py-3 border-b border-[#30363d] flex justify-between items-center sticky top-0 z-40">
             <div>
-                <h1 id="header-title" class="text-lg font-black text-[#f0f6fc]">ITRMC DASHBOARD</h1>
-                <p class="text-[10px] text-[#8b949e] font-bold uppercase tracking-widest">Accomplishment Monitoring</p>
+                <h1 id="header-title" class="text-lg font-black text-[#f0f6fc]">DASHBOARD</h1>
+                <p class="text-[10px] text-[#8b949e] font-bold uppercase tracking-widest">Strict KPI Monitoring</p>
             </div>
             <div class="flex items-center gap-2 bg-[#0d1117] p-1.5 rounded-lg border border-[#30363d]">
                 <select id="filter-year" onchange="refreshData()" class="bg-[#21262d] text-[#f0f6fc] text-xs px-2 py-1 rounded border border-[#30363d] font-bold outline-none cursor-pointer"></select>
@@ -55,7 +54,7 @@
 
         <div id="view-main" class="p-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div class="dashboard-card p-6 text-center border-b-4 border-[#388bfd]"><p class="text-[10px] font-black text-[#8b949e] uppercase mb-1">Average Accomplishment</p><h2 id="stat-avg" class="big-kpi text-5xl">0.00%</h2></div>
+                <div class="dashboard-card p-6 text-center border-b-4 border-[#388bfd]"><p class="text-[10px] font-black text-[#8b949e] uppercase mb-1">Avg Accomplishment</p><h2 id="stat-avg" class="big-kpi text-5xl">0.00%</h2></div>
                 <div class="dashboard-card p-6 text-center border-b-4 border-[#3fb950]"><p class="text-[10px] font-black text-[#8b949e] uppercase mb-1">Overall Compliance</p><h2 id="stat-comp" class="big-kpi text-5xl">0.00%</h2></div>
             </div>
             <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
@@ -66,28 +65,27 @@
                 <div class="dashboard-card p-3 text-center border-b-2 border-[#f85149]"><p class="text-[9px] font-black text-[#f85149] uppercase">Missing</p><h2 id="stat-missing" class="big-kpi text-2xl">0</h2></div>
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-                <div class="dashboard-card p-4 lg:col-span-2 h-[450px] flex flex-col">
-                    <h3 class="text-[10px] font-black text-[#8b949e] uppercase mb-4 tracking-widest">Accomplishment Rate per Office (%)</h3>
+                <div class="dashboard-card p-4 lg:col-span-2 h-[400px] flex flex-col">
+                    <h3 class="text-[10px] font-black text-[#8b949e] uppercase mb-4 tracking-widest">Office Rates</h3>
                     <div class="flex-grow min-h-0"><canvas id="barChart"></canvas></div>
                 </div>
-                <div class="dashboard-card p-4 h-[450px] flex flex-col items-center justify-center">
-                    <h3 class="text-[10px] font-black text-[#8b949e] uppercase mb-4 tracking-widest">Submission Overview</h3>
+                <div class="dashboard-card p-4 h-[400px] flex flex-col items-center justify-center">
+                    <h3 class="text-[10px] font-black text-[#8b949e] uppercase mb-4 tracking-widest">Overview</h3>
                     <div class="w-full flex-grow"><canvas id="pieChart"></canvas></div>
                 </div>
             </div>
-            <div class="dashboard-card p-8 border-t-4 border-[#8957e5]">
-                <h3 class="big-kpi text-2xl text-center mb-6 italic">🏆 EARLY BIRD RANKING</h3>
+            <div class="dashboard-card p-6 border-t-4 border-[#8957e5]">
+                <h3 class="big-kpi text-xl text-center mb-6 italic uppercase tracking-tighter">Ranking (Submission Date)</h3>
                 <table class="w-full text-left text-sm"><thead class="bg-[#0d1117] text-[#8b949e] text-[10px] uppercase font-black"><tr><th class="p-4">Rank</th><th class="p-4">Office</th><th class="p-4 text-right">Timestamp</th></tr></thead><tbody id="ranking-body" class="divide-y divide-[#30363d]"></tbody></table>
             </div>
         </div>
 
         <div id="view-annual" class="p-6 hidden">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                <div class="dashboard-card p-6 border-l-4 border-[#8957e5]"><p class="text-[10px] font-black text-[#8b949e] uppercase">Annual Average</p><h2 id="ann-avg" class="text-5xl font-black">0%</h2></div>
-                <div class="dashboard-card p-6 border-l-4 border-[#3fb950]"><p class="text-[10px] font-black text-[#8b949e] uppercase">Overall Compliance</p><h2 id="ann-comp" class="text-5xl font-black">0%</h2></div>
-                <div class="dashboard-card p-6 border-l-4 border-[#f2cc60]"><p class="text-[10px] font-black text-[#8b949e] uppercase">Top Performer</p><h2 id="ann-top" class="text-xl font-black truncate mt-1">---</h2></div>
+                <div class="dashboard-card p-6 border-l-4 border-[#8957e5]"><p class="text-[10px] font-black text-[#8b949e] uppercase">Annual Avg</p><h2 id="ann-avg" class="text-5xl font-black">0%</h2></div>
+                <div class="dashboard-card p-6 border-l-4 border-[#3fb950]"><p class="text-[10px] font-black text-[#8b949e] uppercase">Compliance</p><h2 id="ann-comp" class="text-5xl font-black">0%</h2></div>
+                <div class="dashboard-card p-6 border-l-4 border-[#f2cc60]"><p class="text-[10px] font-black text-[#8b949e] uppercase">Top Office</p><h2 id="ann-top" class="text-xl font-black truncate mt-1">---</h2></div>
             </div>
-            <div class="dashboard-card p-6 mb-6 h-[400px] flex flex-col"><div class="flex-grow min-h-0"><canvas id="annualTrendChart"></canvas></div></div>
             <div class="dashboard-card overflow-hidden"><table class="w-full text-left text-sm"><thead class="bg-[#0d1117] text-[#8b949e] text-[10px] uppercase font-black"><tr><th class="p-4">Office</th><th class="p-4 text-center">Q1</th><th class="p-4 text-center">Q2</th><th class="p-4 text-center">Q3</th><th class="p-4 text-center">Q4</th><th class="p-4 text-right text-white font-black border-l border-[#30363d]">Annual Avg</th></tr></thead><tbody id="ann-table-body" class="divide-y divide-[#30363d]"></tbody></table></div>
         </div>
     </div>
@@ -98,7 +96,17 @@
 
         try { Chart.register(ChartDataLabels); Chart.defaults.color = '#8b949e'; } catch(e) {}
 
-        function init() { Papa.parse(CSV_URL, { download: true, header: true, skipEmptyLines: true, complete: res => { rawData = res.data; setupYears(); refreshData(); } }); }
+        function init() { 
+            Papa.parse(CSV_URL, { 
+                download: true, header: true, skipEmptyLines: true, 
+                complete: res => { 
+                    // FILTER OUT ROWS WITHOUT OFFICE NAME (The "Strict" Rule)
+                    rawData = res.data.filter(r => r.OFFICE && r.OFFICE.trim() !== ""); 
+                    setupYears(); 
+                    refreshData(); 
+                } 
+            }); 
+        }
         
         function setupYears() {
             const yrSel = document.getElementById('filter-year');
@@ -122,9 +130,12 @@
 
         function renderMain() {
             const y = document.getElementById('filter-year').value, q = document.getElementById('filter-quarter').value;
-            // STRICT FILTER: Dapat may OFFICE name
-            const filtered = rawData.filter(r => (r.OFFICE||"").trim() !== "" && (r.YEAR||"").trim()===y && (r.QUARTER||"").trim().toUpperCase()===q);
-            const enc = filtered.filter(r => { const k = Object.keys(r).find(k=>k.toUpperCase().includes('ENCODED')); return (r[k]||"").trim() !== ""; });
+            // STRICT FILTERING
+            const filtered = rawData.filter(r => (r.YEAR||"").trim()===y && (r.QUARTER||"").trim().toUpperCase()===q);
+            const enc = filtered.filter(r => { 
+                const k = Object.keys(r).find(key => key.toUpperCase().includes('ENCODED')); 
+                return r[k] && r[k].trim() !== ""; 
+            });
             
             if(!filtered.length) { clearAll(); return; }
 
@@ -134,14 +145,14 @@
 
             document.getElementById('stat-avg').innerText = (enc.length ? (sum/enc.length).toFixed(2) : "0.00") + "%";
             document.getElementById('stat-comp').innerText = (filtered.length ? (enc.length/filtered.length*100).toFixed(2) : "0.00") + "%";
-            document.getElementById('stat-total').innerText = filtered.length;
+            document.getElementById('stat-total').innerText = filtered.length; // Eto dapat maging 14
             document.getElementById('stat-encoded').innerText = enc.length;
             document.getElementById('stat-ontime').innerText = onTime;
             document.getElementById('stat-late').innerText = late;
             document.getElementById('stat-missing').innerText = filtered.length - enc.length;
 
             const group = {}; filtered.forEach(r => {
-                const off = (r.OFFICE||"Unknown").trim();
+                const off = r.OFFICE.trim();
                 const rate = enc.includes(r) ? parseFloat((r['ACCOMPLISHMENT RATE']||"0").replace('%','')) || 0 : 0;
                 if(!group[off]) group[off] = {s:0, c:0}; group[off].s += rate; group[off].c++;
             });
@@ -153,7 +164,7 @@
             if(charts.bar) charts.bar.destroy(); if(charts.pie) charts.pie.destroy();
             charts.bar = new Chart(document.getElementById('barChart'), {
                 type: 'bar', data: { labels, datasets: [{ data, backgroundColor: '#388bfd', borderRadius: 4 }] },
-                options: { indexAxis: 'y', maintainAspectRatio: false, plugins: { legend: { display: false }, datalabels: { anchor: 'end', align: 'right', font: { size: 9, weight: 'bold' }, formatter: v => v+'%' } }, scales: { x: { beginAtZero: true, grid: { color: '#30363d' } } } }
+                options: { indexAxis: 'y', maintainAspectRatio: false, plugins: { legend: { display: false }, datalabels: { anchor: 'end', align: 'right', formatter: v => v+'%' } }, scales: { x: { beginAtZero: true, grid: { color: '#30363d' } } } }
             });
             charts.pie = new Chart(document.getElementById('pieChart'), {
                 type: 'doughnut', data: { labels: ['Encoded', 'Missing'], datasets: [{ data: [enc, mis], backgroundColor: ['#3fb950', '#f85149'], borderWidth: 0 }] },
@@ -163,25 +174,25 @@
 
         function buildRank(rows) {
             const dts = {}; rows.forEach(r => {
-                const o = (r.OFFICE||"").trim(), k = Object.keys(r).find(k=>k.toUpperCase().includes('ENCODED')), d = new Date(r[k]);
+                const o = r.OFFICE.trim(), k = Object.keys(r).find(key => key.toUpperCase().includes('ENCODED')), d = new Date(r[k]);
                 if(!isNaN(d) && (!dts[o] || d < dts[o])) dts[o] = d;
             });
             const rkd = Object.keys(dts).map(o => ({o, d: dts[o]})).sort((a,b)=>a.d-b.d);
-            document.getElementById('ranking-body').innerHTML = rkd.map((r,i) => `<tr class="hover:bg-[#21262d]"><td class="p-4 font-black">${i<3?['🥇','🥈','🥉'][i]:i+1}</td><td class="p-4 font-bold text-[#f0f6fc]">${r.o}</td><td class="p-4 text-right text-xs font-mono text-[#8b949e]">${r.d.toLocaleString()}</td></tr>`).join('') || '<tr><td colspan="3" class="p-8 text-center text-[#8b949e]">No data found.</td></tr>';
+            document.getElementById('ranking-body').innerHTML = rkd.map((r,i) => `<tr class="hover:bg-[#21262d]"><td class="p-4 font-black">${i<3?['🥇','🥈','🥉'][i]:i+1}</td><td class="p-4 font-bold text-[#f0f6fc]">${r.o}</td><td class="p-4 text-right text-xs font-mono text-[#8b949e]">${r.d.toLocaleString()}</td></tr>`).join('') || '<tr><td colspan="3" class="p-8 text-center text-[#8b949e]">No data.</td></tr>';
         }
 
         function renderAnnual() {
             const yr = document.getElementById('filter-year').value;
-            const data = rawData.filter(r => (r.OFFICE||"").trim() !== "" && (r.YEAR||"").trim()===yr);
-            const offices = [...new Set(data.map(r => (r.OFFICE||"").trim()))];
+            const data = rawData.filter(r => (r.YEAR||"").trim()===yr);
+            const offices = [...new Set(data.map(r => r.OFFICE.trim()))];
             let qSums = { Q1: {s:0,c:0}, Q2: {s:0,c:0}, Q3: {s:0,c:0}, Q4: {s:0,c:0} }, html = '', top = {n:'---',v:0};
 
             offices.forEach(off => {
                 let s = 0, c = 0, qs = { Q1: '-', Q2: '-', Q3: '-', Q4: '-' };
                 ['Q1','Q2','Q3','Q4'].forEach(q => {
-                    const m = data.find(r => (r.OFFICE||"").trim()===off && (r.QUARTER||"").trim().toUpperCase()===q);
-                    if(m && (m['ACCOMPLISHMENT RATE']||"").trim() !== "") {
-                        const v = parseFloat((m['ACCOMPLISHMENT RATE']||"0").replace('%','')) || 0;
+                    const m = data.find(r => r.OFFICE.trim()===off && (r.QUARTER||"").trim().toUpperCase()===q);
+                    if(m && m['ACCOMPLISHMENT RATE'] && m['ACCOMPLISHMENT RATE'].trim() !== "") {
+                        const v = parseFloat(m['ACCOMPLISHMENT RATE'].replace('%','')) || 0;
                         qs[q] = v.toFixed(1) + '%'; s += v; c++; qSums[q].s += v; qSums[q].c++;
                     }
                 });
@@ -193,12 +204,6 @@
             const totalS = Object.values(qSums).reduce((a,b)=>a+b.s,0), totalC = Object.values(qSums).reduce((a,b)=>a+b.c,0);
             document.getElementById('ann-avg').innerText = (totalC ? (totalS/totalC).toFixed(2) : 0) + "%";
             document.getElementById('ann-comp').innerText = ((totalC / (offices.length*4)) * 100).toFixed(1) + "%";
-
-            if(charts.annTrend) charts.annTrend.destroy();
-            charts.annTrend = new Chart(document.getElementById('annualTrendChart'), {
-                type: 'line', data: { labels:['Q1','Q2','Q3','Q4'], datasets:[{ label: 'Avg Acc', data:['Q1','Q2','Q3','Q4'].map(q=>qSums[q].c?qSums[q].s/qSums[q].c:0), borderColor:'#8957e5', tension:0.4, fill:true, backgroundColor:'rgba(137,87,229,0.1)' }] },
-                options: { maintainAspectRatio:false, plugins: { legend: { display:false } }, scales: { y: { beginAtZero: true, grid: { color: '#30363d' } } } }
-            });
         }
 
         function clearAll() {
