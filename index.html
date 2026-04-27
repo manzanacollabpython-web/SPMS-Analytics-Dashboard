@@ -15,7 +15,7 @@
             font-family: 'Inter', sans-serif;
             background-color: #0d1117;
             color: #c9d1d9;
-            overflow-x: hidden;
+            overflow: hidden; /* Prevent body scroll, we use main scroll */
         }
         .dashboard-card {
             background-color: #161b22;
@@ -30,120 +30,155 @@
         .kpi-title {
             color: #8b949e;
         }
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #0d1117; }
-        ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 10px; }
+        /* Scrollbar Styling */
+        .custom-scroll::-webkit-scrollbar { width: 8px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #0d1117; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #30363d; border-radius: 10px; }
+
+        /* Sidebar Hover */
+        .sidebar-item:hover {
+            background-color: #21262d;
+            color: #58a6ff;
+        }
     </style>
 </head>
-<body class="min-h-screen">
+<body class="flex h-screen w-full">
 
-    <nav class="bg-[#161b22] px-6 py-2 text-white shadow-lg border-b border-[#30363d] sticky top-0 z-50">
-        <div class="container mx-auto flex flex-col md:flex-row justify-between items-center gap-2">
-            <div>
-                <h1 class="text-lg font-black tracking-tight text-[#f0f6fc]">ITRMC DASHBOARD</h1>
-                <p class="text-[10px] text-[#8b949e] uppercase tracking-wider">Accomplishment Monitoring</p>
-            </div>
-            
-            <div class="flex items-center gap-2 bg-[#0d1117] p-1.5 rounded-lg border border-[#30363d]">
-                <div class="flex flex-col">
-                    <label class="text-[8px] uppercase font-bold text-[#8b949e] px-1">Year</label>
-                    <select id="filter-year" onchange="applyFilters()" class="bg-[#21262d] text-[#f0f6fc] text-xs rounded px-2 py-0.5 outline-none border border-[#30363d] font-bold cursor-pointer">
-                    </select>
-                </div>
-                <div class="flex flex-col">
-                    <label class="text-[8px] uppercase font-bold text-[#8b949e] px-1">Quarter</label>
-                    <select id="filter-quarter" onchange="applyFilters()" class="bg-[#21262d] text-[#f0f6fc] text-xs rounded px-2 py-0.5 outline-none border border-[#30363d] font-bold cursor-pointer">
-                        <option value="Q1">Q1</option>
-                        <option value="Q2">Q2</option>
-                        <option value="Q3">Q3</option>
-                        <option value="Q4">Q4</option>
-                    </select>
-                </div>
-                <div class="text-right ml-1 pl-2 border-l border-[#30363d]">
-                    <span id="sync-status" class="text-[10px] font-bold text-[#f2cc60]">Syncing...</span>
-                </div>
-            </div>
+    <aside class="w-64 bg-[#161b22] border-r border-[#30363d] flex flex-col shrink-0">
+        <div class="p-6 border-b border-[#30363d]">
+            <h2 class="text-sm font-black tracking-widest text-[#f0f6fc]">ITRMC MENU</h2>
         </div>
-    </nav>
-
-    <div class="container mx-auto px-4 h-[calc(100vh-80px)] flex flex-col justify-between py-3">
         
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div class="dashboard-card py-3 px-6 text-center border-b-2 border-b-[#388bfd]">
-                <p class="kpi-title text-[10px] font-bold uppercase mb-0.5">Average Accomplishment</p>
-                <h2 id="stat-avg" class="big-kpi text-4xl leading-none">0.00%</h2>
-            </div>
-            <div class="dashboard-card py-3 px-6 text-center border-b-2 border-b-[#3fb950]">
-                <p class="kpi-title text-[10px] font-bold uppercase mb-0.5">Overall Compliance</p>
-                <h2 id="stat-comp" class="big-kpi text-4xl leading-none">0.00%</h2>
-            </div>
-        </div>
+        <nav class="flex-grow p-4 space-y-2">
+            <a href="#" class="sidebar-item flex items-center p-3 rounded-lg text-sm font-semibold transition-all">
+                <span class="mr-3">📊</span> Main Dashboard
+            </a>
+            <a href="#" class="sidebar-item flex items-center p-3 rounded-lg text-sm font-semibold transition-all">
+                <span class="mr-3">📈</span> Annual Performance
+            </a>
+            <a href="#" class="sidebar-item flex items-center p-3 rounded-lg text-sm font-semibold transition-all">
+                <span class="mr-3">👥</span> Add User
+            </a>
+            <a href="#" class="sidebar-item flex items-center p-3 rounded-lg text-sm font-semibold transition-all">
+                <span class="mr-3">⚙️</span> Settings
+            </a>
+        </nav>
 
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
-            <div class="dashboard-card p-2 text-center border-b-2 border-b-[#8b949e]">
-                <p class="kpi-title text-[9px] font-bold uppercase mb-0.5">Total KPI</p>
-                <h2 id="stat-total" class="big-kpi text-2xl leading-tight">0</h2>
-            </div>
-            <div class="dashboard-card p-2 text-center border-b-2 border-b-[#388bfd]">
-                <p class="kpi-title text-[9px] font-bold uppercase mb-0.5">Encoded</p>
-                <h2 id="stat-encoded" class="big-kpi text-2xl leading-tight text-[#388bfd]">0</h2>
-            </div>
-            <div class="dashboard-card p-2 text-center border-b-2 border-b-[#3fb950]">
-                <p class="kpi-title text-[9px] font-bold uppercase mb-0.5">On-Time</p>
-                <h2 id="stat-ontime" class="big-kpi text-2xl leading-tight text-[#3fb950]">0</h2>
-            </div>
-            <div class="dashboard-card p-2 text-center border-b-2 border-b-[#d29922]">
-                <p class="kpi-title text-[9px] font-bold uppercase mb-0.5">Late</p>
-                <h2 id="stat-late" class="big-kpi text-2xl leading-tight text-[#d29922]">0</h2>
-            </div>
-            <div class="dashboard-card p-2 text-center border-b-2 border-b-[#f85149]">
-                <p class="kpi-title text-[9px] font-bold uppercase mb-0.5">Not Encoded</p>
-                <h2 id="stat-missing" class="big-kpi text-2xl leading-tight text-[#f85149]">0</h2>
-            </div>
+        <div class="p-4 border-t border-[#30363d] text-[10px] text-[#8b949e] text-center">
+            System Version 2026.1
         </div>
+    </aside>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-grow mb-2">
-            <div class="dashboard-card p-4 lg:col-span-2 flex flex-col">
-                <h3 class="kpi-title font-bold mb-2 flex items-center text-[10px] uppercase tracking-wider">
-                    <span class="w-2 h-2 bg-[#388bfd] rounded-full mr-2"></span>
-                    Accomplishment Rate per Office (%)
-                </h3>
-                <div class="relative flex-grow">
-                    <canvas id="barChart"></canvas>
+    <div class="flex-grow flex flex-col overflow-hidden">
+        
+        <nav class="bg-[#161b22] px-6 py-2 text-white shadow-lg border-b border-[#30363d] sticky top-0 z-50">
+            <div class="container mx-auto flex flex-col md:flex-row justify-between items-center gap-2">
+                <div>
+                    <h1 class="text-lg font-black tracking-tight text-[#f0f6fc]">ITRMC DASHBOARD</h1>
+                    <p class="text-[10px] text-[#8b949e] uppercase tracking-wider">Accomplishment Monitoring</p>
+                </div>
+                
+                <div class="flex items-center gap-2 bg-[#0d1117] p-1.5 rounded-lg border border-[#30363d]">
+                    <div class="flex flex-col">
+                        <label class="text-[8px] uppercase font-bold text-[#8b949e] px-1">Year</label>
+                        <select id="filter-year" onchange="applyFilters()" class="bg-[#21262d] text-[#f0f6fc] text-xs rounded px-2 py-0.5 outline-none border border-[#30363d] font-bold cursor-pointer"></select>
+                    </div>
+                    <div class="flex flex-col">
+                        <label class="text-[8px] uppercase font-bold text-[#8b949e] px-1">Quarter</label>
+                        <select id="filter-quarter" onchange="applyFilters()" class="bg-[#21262d] text-[#f0f6fc] text-xs rounded px-2 py-0.5 outline-none border border-[#30363d] font-bold cursor-pointer">
+                            <option value="Q1">Q1</option>
+                            <option value="Q2">Q2</option>
+                            <option value="Q3">Q3</option>
+                            <option value="Q4">Q4</option>
+                        </select>
+                    </div>
+                    <div class="text-right ml-1 pl-2 border-l border-[#30363d]">
+                        <span id="sync-status" class="text-[10px] font-bold text-[#f2cc60]">Syncing...</span>
+                    </div>
                 </div>
             </div>
+        </nav>
 
-            <div class="dashboard-card p-4 flex flex-col items-center justify-center text-center">
-                <h3 class="kpi-title font-bold mb-4 text-[10px] uppercase tracking-wider">
-                    Submission Overview
-                </h3>
-                <div class="w-full flex-grow flex items-center justify-center min-h-[220px]">
-                    <canvas id="pieChart"></canvas>
+        <main class="flex-grow overflow-y-auto custom-scroll p-4">
+            <div class="container mx-auto">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div class="dashboard-card py-3 px-6 text-center border-b-2 border-b-[#388bfd]">
+                        <p class="kpi-title text-[10px] font-bold uppercase mb-0.5">Average Accomplishment</p>
+                        <h2 id="stat-avg" class="big-kpi text-4xl leading-none">0.00%</h2>
+                    </div>
+                    <div class="dashboard-card py-3 px-6 text-center border-b-2 border-b-[#3fb950]">
+                        <p class="kpi-title text-[10px] font-bold uppercase mb-0.5">Overall Compliance</p>
+                        <h2 id="stat-comp" class="big-kpi text-4xl leading-none">0.00%</h2>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
+                    <div class="dashboard-card p-2 text-center border-b-2 border-b-[#8b949e]">
+                        <p class="kpi-title text-[9px] font-bold uppercase mb-0.5">Total KPI</p>
+                        <h2 id="stat-total" class="big-kpi text-2xl leading-tight">0</h2>
+                    </div>
+                    <div class="dashboard-card p-2 text-center border-b-2 border-b-[#388bfd]">
+                        <p class="kpi-title text-[9px] font-bold uppercase mb-0.5">Encoded</p>
+                        <h2 id="stat-encoded" class="big-kpi text-2xl leading-tight text-[#388bfd]">0</h2>
+                    </div>
+                    <div class="dashboard-card p-2 text-center border-b-2 border-b-[#3fb950]">
+                        <p class="kpi-title text-[9px] font-bold uppercase mb-0.5">On-Time</p>
+                        <h2 id="stat-ontime" class="big-kpi text-2xl leading-tight text-[#3fb950]">0</h2>
+                    </div>
+                    <div class="dashboard-card p-2 text-center border-b-2 border-b-[#d29922]">
+                        <p class="kpi-title text-[9px] font-bold uppercase mb-0.5">Late</p>
+                        <h2 id="stat-late" class="big-kpi text-2xl leading-tight text-[#d29922]">0</h2>
+                    </div>
+                    <div class="dashboard-card p-2 text-center border-b-2 border-b-[#f85149]">
+                        <p class="kpi-title text-[9px] font-bold uppercase mb-0.5">Not Encoded</p>
+                        <h2 id="stat-missing" class="big-kpi text-2xl leading-tight text-[#f85149]">0</h2>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    <div class="dashboard-card p-4 lg:col-span-2 min-h-[350px] flex flex-col">
+                        <h3 class="kpi-title font-bold mb-2 flex items-center text-[10px] uppercase tracking-wider">
+                            <span class="w-2 h-2 bg-[#388bfd] rounded-full mr-2"></span>
+                            Accomplishment Rate per Office (%)
+                        </h3>
+                        <div class="relative flex-grow">
+                            <canvas id="barChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-card p-4 flex flex-col items-center justify-center text-center">
+                        <h3 class="kpi-title font-bold mb-4 text-[10px] uppercase tracking-wider">
+                            Submission Overview
+                        </h3>
+                        <div class="w-full flex-grow flex items-center justify-center min-h-[220px]">
+                            <canvas id="pieChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-card p-8 border-t-4 border-t-[#8957e5] w-full text-center mb-10">
+                    <h3 class="big-kpi text-2xl mb-2">🏆 EARLY BIRD RANKING</h3>
+                    <p id="ranking-subtitle" class="text-xs text-[#8b949e] mb-8 uppercase tracking-widest italic">Ranked by Earliest Date Encoded</p>
+                    <div class="overflow-x-auto w-full">
+                        <table class="w-full text-sm text-left text-[#c9d1d9]">
+                            <thead class="text-xs text-[#8b949e] uppercase bg-[#0d1117] border border-[#30363d]">
+                                <tr>
+                                    <th class="px-6 py-4 font-bold">Rank</th>
+                                    <th class="px-6 py-4 font-bold">Office / Division</th>
+                                    <th class="px-6 py-4 font-bold">Date & Time Encoded</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ranking-body" class="divide-y divide-[#30363d]"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <div class="container mx-auto px-4 py-12 border-t border-[#30363d]">
-        <div class="dashboard-card p-8 border-t-4 border-t-[#8957e5] w-full text-center">
-            <h3 class="big-kpi text-2xl mb-2">🏆 EARLY BIRD RANKING</h3>
-            <p id="ranking-subtitle" class="text-xs text-[#8b949e] mb-8 uppercase tracking-widest italic">Ranked by Earliest Date Encoded</p>
-            <div class="overflow-x-auto w-full">
-                <table class="w-full text-sm text-left text-[#c9d1d9]">
-                    <thead class="text-xs text-[#8b949e] uppercase bg-[#0d1117] border border-[#30363d]">
-                        <tr>
-                            <th class="px-6 py-4 font-bold">Rank</th>
-                            <th class="px-6 py-4 font-bold">Office / Division</th>
-                            <th class="px-6 py-4 font-bold">Date & Time Encoded</th>
-                        </tr>
-                    </thead>
-                    <tbody id="ranking-body" class="divide-y divide-[#30363d]"></tbody>
-                </table>
-            </div>
-        </div>
+        </main>
     </div>
 
     <script>
+        // MGA JAVASCRIPT LOGIC MO (WALANG BINAGO SA LOOB)
         try {
             Chart.register(ChartDataLabels);
             Chart.defaults.color = '#8b949e';
@@ -282,7 +317,7 @@
                 type: 'doughnut',
                 data: { labels: ['Encoded', 'Not Encoded'], datasets: [{ data: [encoded, missing], backgroundColor: ['#3fb950', '#f85149'], borderWidth: 2, borderColor: '#161b22' }] },
                 options: { 
-                    cutout: '45%', // Bolder Ring
+                    cutout: '45%',
                     maintainAspectRatio: false,
                     plugins: { 
                         legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10, weight: 'bold' }, padding: 15 } }, 
