@@ -1,49 +1,72 @@
 function renderMain() {
-            const y = document.getElementById('filter-year').value, q = document.getElementById('filter-quarter').value;
-            
-            // STRICT FILTERING: Dapat may Office AND may Accomplishment data
-            const filtered = rawData.filter(r => {
-                const officeName = (r.OFFICE || "").trim();
-                const accRate = (r['ACCOMPLISHMENT RATE'] || "").trim();
-                const yearMatch = (r.YEAR || "").trim() === y;
-                const quarterMatch = (r.QUARTER || "").trim().toUpperCase() === q;
-                
-                // HINDI isasali kung blanko ang Office o blanko ang Accomplishment Rate
-                return officeName !== "" && accRate !== "" && yearMatch && quarterMatch;
-            });
+    const y = document.getElementById('filter-year').value;
+    const q = document.getElementById('filter-quarter').value;
 
-            const enc = filtered.filter(r => { 
-                const k = Object.keys(r).find(key => key.toUpperCase().includes('ENCODED')); 
-                return r[k] && r[k].trim() !== ""; 
-            });
-            
-            if(!filtered.length) { clearAll(); return; }
+    // STEP 1: STRICT FILTERING
+    const filtered = rawData.filter(r => {
+        // Kunin ang data at linisin (remove spaces)
+        const officeName = (r.OFFICE || "").toString().trim();
+        const accRate = (r['ACCOMPLISHMENT RATE'] || "").toString().trim();
+        const yearMatch = (r.YEAR || "").toString().trim() === y;
+        const quarterMatch = (r.QUARTER || "").toString().trim().toUpperCase() === q.toUpperCase();
 
-            // Math Logic
-            const totalKPI = filtered.length; // Dito lalabas ang 14 base sa may data lang
-            const encodedCount = enc.length;
-            const onTime = enc.filter(r => (r['WITHIN DEADLINE'] || "").trim() === 'On Time').length;
-            const late = enc.filter(r => (r['WITHIN DEADLINE'] || "").trim() === 'Late').length;
-            
-            let sum = 0; 
-            enc.forEach(r => sum += parseFloat((r['ACCOMPLISHMENT RATE'] || "0").replace('%', '')) || 0);
+        // LOGIC: Isasama LANG kung may pangalan ang Office AT may laman ang Accomplishment Rate
+        // Kapag ang row ay mukhang may kulay pero walang text, dito siya mafi-filter out.
+        return officeName !== "" && accRate !== "" && yearMatch && quarterMatch;
+    });
 
-            // Display sa Dashboard
-            document.getElementById('stat-total').innerText = totalKPI; 
-            document.getElementById('stat-encoded').innerText = encodedCount;
-            document.getElementById('stat-avg').innerText = (encodedCount ? (sum / encodedCount).toFixed(2) : "0.00") + "%";
-            document.getElementById('stat-comp').innerText = (totalKPI ? (encodedCount / totalKPI * 100).toFixed(2) : "0.00") + "%";
-            document.getElementById('stat-ontime').innerText = onTime;
-            document.getElementById('stat-late').innerText = late;
-            document.getElementById('stat-missing').innerText = totalKPI - encodedCount;
+    // STEP 2: CHECK KUNG MAY DATA NA NATIRA
+    if (filtered.length === 0) {
+        console.warn("No valid data found for:", y, q);
+        clearAll();
+        return;
+    }
 
-            // Update Charts
-            const group = {}; 
-            filtered.forEach(r => {
-                const off = r.OFFICE.trim();
-                const rate = parseFloat((r['ACCOMPLISHMENT RATE'] || "0").replace('%', '')) || 0;
-                group[off] = rate;
-            });
-            drawMainCharts(Object.keys(group), Object.values(group), encodedCount, totalKPI - encodedCount);
-            buildRank(enc);
-        }
+    // STEP 3: ENCODED CHECK (Dito natin tinitingnan kung kailan na-submit)
+    const enc = filtered.filter(r => {
+        const k = Object.keys(r).find(key => key.toUpperCase().includes('ENCODED'));
+        return r[k] && r[k].toString().trim() !== "";
+    });
+
+    // STEP 4: MATH LOGIC
+    const totalKPI = filtered.length; // Eto dapat ang magiging 14
+    const encodedCount = enc.length;
+    const onTime = enc.filter(r => (r['WITHIN DEADLINE'] || "").toString().trim() === 'On Time').length;
+    const late = enc.filter(r => (r['WITHIN DEADLINE'] || "").toString().trim() === 'Late').length;
+
+    let sum = 0;
+    enc.forEach(r => {
+        const val = (r['ACCOMPLISHMENT RATE'] || "0").toString().replace('%', '');
+        sum += parseFloat(val) || 0;
+    });
+
+    // STEP 5: DISPLAY SA DASHBOARD (ID check)
+    const updateText = (id, text) => {
+        const el = document.getElementById(id);
+        if (el) el.innerText = text;
+    };
+
+    updateText('stat-total', totalKPI);
+    updateText('stat-encoded', encodedCount);
+    updateText('stat-avg', (encodedCount ? (sum / encodedCount).toFixed(2) : "0.00") + "%");
+    updateText('stat-comp', (totalKPI ? (encodedCount / totalKPI * 100).toFixed(2) : "0.00") + "%");
+    updateText('stat-ontime', onTime);
+    updateText('stat-late', late);
+    updateText('stat-missing', totalKPI - encodedCount);
+
+    // STEP 6: REFRESH CHARTS
+    const group = {};
+    filtered.forEach(r => {
+        const off = r.OFFICE.toString().trim();
+        const rate = parseFloat((r['ACCOMPLISHMENT RATE'] || "0").toString().replace('%', '')) || 0;
+        group[off] = rate;
+    });
+
+    if (typeof drawMainCharts === "function") {
+        drawMainCharts(Object.keys(group), Object.values(group), encodedCount, totalKPI - encodedCount);
+    }
+    
+    if (typeof buildRank === "function") {
+        buildRank(enc);
+    }
+}
