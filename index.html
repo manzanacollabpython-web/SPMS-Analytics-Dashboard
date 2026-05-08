@@ -400,9 +400,8 @@ allRows.forEach(r => {
             .replace('%', '')
         ) || 0;
 
-        grouped[office].sum += rate * kpi;
-
-        grouped[office].count += kpi;
+       grouped[office].sum += rate;
+grouped[office].count += 1;
     }
 });
 
