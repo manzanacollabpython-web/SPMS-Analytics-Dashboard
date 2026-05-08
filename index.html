@@ -355,8 +355,8 @@ encodedRows.forEach(r => {
         .replace('%','')
     ) || 0;
 
-    const kpi =
-        parseFloat(r['NO. OF KPI']) || 0;
+        const kpi =
+    parseFloat(r['NO. OF KPI']) || 1;
 
     weightedSum += rate * kpi;
 
