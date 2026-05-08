@@ -345,7 +345,8 @@
                 totalRateSum += rate;
             });
             
-         let totalRate = 0;
+       let totalRate = 0;
+let totalKPI = 0;
 
 encodedRows.forEach(r => {
 
@@ -354,12 +355,18 @@ encodedRows.forEach(r => {
         .replace('%','')
     ) || 0;
 
+    const kpi = parseFloat(r['NO. OF KPI']) || 0;
+
     totalRate += rate;
+
+    if(kpi === 1) {
+        totalKPI += 1;
+    }
 });
 
 const avgAccomplishment =
-    encodedRows.length > 0
-    ? (totalRate / encodedRows.length).toFixed(2)
+    totalKPI > 0
+    ? (totalRate / totalKPI).toFixed(2)
     : "0.00";
             const compliance = total > 0 ? ((encodedCount / total) * 100).toFixed(2) : "0.00";
 
