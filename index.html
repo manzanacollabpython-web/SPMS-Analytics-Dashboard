@@ -345,21 +345,23 @@
                 totalRateSum += rate;
             });
             
-       let totalRate = 0;
+      let totalRate = 0;
 let totalKPI = 0;
 
-encodedRows.forEach(r => {
+allRows.forEach(r => {
 
-    const rate = parseFloat(
-        (r['ACCOMPLISHMENT RATE'] || "0")
-        .replace('%','')
-    ) || 0;
+    const kpi =
+        parseFloat(r['NO. OF KPI']) || 0;
 
-    const kpi = parseFloat(r['NO. OF KPI']) || 0;
+    if(kpi === 1){
 
-    totalRate += rate;
+        const rate = parseFloat(
+            (r['ACCOMPLISHMENT RATE'] || "0")
+            .replace('%','')
+        ) || 0;
 
-    if(kpi === 1) {
+        totalRate += rate;
+
         totalKPI += 1;
     }
 });
