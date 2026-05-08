@@ -262,7 +262,7 @@
 
     try {
 
-        const response = await fetch(API_URL);
+        const response = await fetch(API_URL + '?t=' + new Date().getTime());
 
         rawData = await response.json();
 
@@ -370,17 +370,55 @@ const avgAccomplishment =
             document.getElementById('stat-missing').innerText = missing;
 
             const grouped = {};
-            allRows.forEach(r => {
-                const office = (r.OFFICE || "Unknown").trim();
-                const hasDate = (r[Object.keys(r).find(k => k.toUpperCase().includes('ENCODED'))] || "").trim() !== "";
-                if (!grouped[office]) grouped[office] = { sum: 0, count: 0 };
-                if (hasDate) {
-                    grouped[office].sum += parseFloat((r['ACCOMPLISHMENT RATE'] || "0").replace('%', '')) || 0;
-                    grouped[office].count += 1;
-                } else { grouped[office].count += 1; }
-            });
 
-            renderCharts(Object.keys(grouped), Object.keys(grouped).map(l => (grouped[l].sum / grouped[l].count).toFixed(2)), encodedCount, missing);
+allRows.forEach(r => {
+
+    const office =
+        (r.OFFICE || "Unknown").trim();
+
+    const hasDate =
+        (r[
+            Object.keys(r)
+            .find(k => k.toUpperCase().includes('ENCODED'))
+        ] || "").trim() !== "";
+
+    const kpi =
+        parseFloat(r['NO. OF KPI']) || 0;
+
+    if (!grouped[office]) {
+
+        grouped[office] = {
+            sum: 0,
+            count: 0
+        };
+    }
+
+    if (hasDate && kpi > 0) {
+
+        const rate = parseFloat(
+            (r['ACCOMPLISHMENT RATE'] || "0")
+            .replace('%', '')
+        ) || 0;
+
+        grouped[office].sum += rate * kpi;
+
+        grouped[office].count += kpi;
+    }
+});
+
+renderCharts(
+    Object.keys(grouped),
+
+    Object.keys(grouped).map(l =>
+
+        grouped[l].count > 0
+        ? (grouped[l].sum / grouped[l].count).toFixed(2)
+        : 0
+    ),
+
+    encodedCount,
+    missing
+);
         }
 
         function renderCharts(labels, dataValues, encoded, missing) {
@@ -427,7 +465,11 @@ const avgAccomplishment =
             document.getElementById('ranking-body').innerHTML = html || '<tr><td colspan="3" class="px-6 py-8 text-center text-[#f85149]">⚠️ No encoded dates.</td></tr>';
         }
 
-        window.onload = init;
+       window.onload = init;
+
+setInterval(() => {
+    init();
+}, 10000);
     </script>
  
 </body>
