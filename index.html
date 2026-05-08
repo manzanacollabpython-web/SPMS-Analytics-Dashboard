@@ -345,19 +345,27 @@
                 totalRateSum += rate;
             });
             
-            const validRates = encodedRows
-    .map(r => parseFloat(
+            let weightedSum = 0;
+let totalKPI = 0;
+
+encodedRows.forEach(r => {
+
+    const rate = parseFloat(
         (r['ACCOMPLISHMENT RATE'] || "0")
         .replace('%','')
-    ))
-    .filter(v => !isNaN(v));
+    ) || 0;
+
+    const kpi =
+        parseFloat(r['NO. OF KPI']) || 0;
+
+    weightedSum += rate * kpi;
+
+    totalKPI += kpi;
+});
 
 const avgAccomplishment =
-    validRates.length > 0
-    ? (
-        validRates.reduce((a,b)=>a+b,0)
-        / validRates.length
-      ).toFixed(2)
+    totalKPI > 0
+    ? (weightedSum / totalKPI).toFixed(2)
     : "0.00";
             const compliance = total > 0 ? ((encodedCount / total) * 100).toFixed(2) : "0.00";
 
@@ -400,8 +408,8 @@ allRows.forEach(r => {
             .replace('%', '')
         ) || 0;
 
-       grouped[office].sum += rate;
-grouped[office].count += 1;
+       grouped[office].sum += rate * kpi;
+grouped[office].count += kpi;
     }
 });
 
