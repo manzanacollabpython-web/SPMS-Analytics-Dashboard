@@ -345,7 +345,20 @@
                 totalRateSum += rate;
             });
             
-            const avgAccomplishment = encodedCount > 0 ? (totalRateSum / encodedCount).toFixed(2) : "0.00";
+            const validRates = encodedRows
+    .map(r => parseFloat(
+        (r['ACCOMPLISHMENT RATE'] || "0")
+        .replace('%','')
+    ))
+    .filter(v => !isNaN(v));
+
+const avgAccomplishment =
+    validRates.length > 0
+    ? (
+        validRates.reduce((a,b)=>a+b,0)
+        / validRates.length
+      ).toFixed(2)
+    : "0.00";
             const compliance = total > 0 ? ((encodedCount / total) * 100).toFixed(2) : "0.00";
 
             document.getElementById('stat-avg').innerText = avgAccomplishment + '%';
