@@ -7,7 +7,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     
     <style>
@@ -255,34 +254,51 @@
             Chart.defaults.color = '#8b949e';
         } catch(e) { console.error(e); }
 
-        const CSV_LINK = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSk0F8K5bfpkZ6Q8JUoDBZ68NqTfiW-r8F9s165g7inDSvnVwrQNBU8Dlw2WPOPeqzVCxSl3Emuix4E/pub?gid=890592255&single=true&output=csv' + Date.now();
-
+       const API_URL = 'https://script.google.com/macros/s/AKfycbwvEy5JPb9MVtWd3t6yK9jufyVFhDpz_2euzEDQjGHq6bcRvgkb57L6fqdsfMT1D5tTkA/exec';
         let rawData = [];
         let charts = {};
 
-        function init() {
-            Papa.parse(CSV_LINK, {
-                download: true, header: true, skipEmptyLines: true,
-                complete: function(results) {
-                    rawData = results.data;
-                    setupYearFilter(rawData);
-                    applyFilters();
-                }
-            });
-        }
+       async function init() {
 
-        function setupYearFilter(data) {
-            const years = [...new Set(data.map(r => (r.YEAR || "").trim()).filter(y => y !== ""))].sort().reverse();
-            const yearSelect = document.getElementById('filter-year');
-            yearSelect.innerHTML = '';
-            if(years.length === 0) {
-                const opt = document.createElement('option'); opt.value = "2026"; opt.text = "2026"; yearSelect.add(opt);
-            } else {
-                years.forEach(y => {
-                    const opt = document.createElement('option'); opt.value = y; opt.text = y; yearSelect.add(opt);
-                });
-            }
-        }
+    try {
+
+        const response = await fetch(API_URL);
+
+        rawData = await response.json();
+
+        setupYearFilter(rawData);
+
+        applyFilters();
+
+    } catch(error) {
+
+        console.error(error);
+
+    }
+}
+
+       function setupYearFilter(data) {
+
+    const yearSelect =
+        document.getElementById('filter-year');
+
+    if(yearSelect.options.length > 0) return;
+
+    const years = [...new Set(
+        data.map(r => (r.YEAR || "").trim())
+        .filter(y => y !== "")
+    )].sort().reverse();
+
+    years.forEach(y => {
+
+        const opt = document.createElement('option');
+
+        opt.value = y;
+        opt.text = y;
+
+        yearSelect.add(opt);
+    });
+}
 
         function applyFilters() {
             const selectedYear = document.getElementById('filter-year').value;
@@ -400,10 +416,10 @@
 
         window.onload = init;
     </script>
-    <script>
+  <script>
 setInterval(() => {
-    location.reload();
-}, 5000);
+    init();
+}, 10000);
 </script>
 </body>
 </html>
