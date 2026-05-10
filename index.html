@@ -353,7 +353,7 @@ allRows.forEach(r => {
     const kpi =
         parseFloat(r['NO. OF KPI']) || 0;
 
-    if(kpi === 1){
+    if(kpi > 0){{
 
         const rate = parseFloat(
             (r['ACCOMPLISHMENT RATE'] || "0")
