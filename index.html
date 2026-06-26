@@ -282,7 +282,7 @@
     const yearSelect =
         document.getElementById('filter-year');
 
-    (yearSelect.options.length > 0) return;
+    if (yearSelect.options.length > 0) return;
 
     const years = [...new Set(
         data.map(r => (r.YEAR || "").trim())
