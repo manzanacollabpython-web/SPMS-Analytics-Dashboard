@@ -64,7 +64,7 @@
 
     <div class="flex-grow flex flex-col overflow-hidden">
         <nav class="bg-[#161b22] px-6 shadow-lg border-b border-[#30363d] sticky top-0 z-50 h-[69px] flex items-center shrink-0">
-            <div class="w-full flex justy-between items-center">
+            <div class="w-full flex justify-between items-center">
                 <div class="flex flex-col">
                     <h1 class="text-lg font-black tracking-tight text-[#f0f6fc] leading-none uppercase">ITRMC DASHBOARD</h1>
                     <p class="text-[10px] text-[#8b949e] uppercase tracking-wider mt-1 font-semibold">Accomplishment Monitoring</p>
@@ -130,7 +130,7 @@
                         <h3 class="kpi-title font-bold mb-2 text-[10px] uppercase tracking-wider">Accomplishment Rate per Office (%)</h3>
                         <div class="relative flex-grow"><canvas id="barChart"></canvas></div>
                     </div>
-                    <div class="dashboard-card p-4 flex flex-col items-center justy-center">
+                    <div class="dashboard-card p-4 flex flex-col items-center justify-center">
                         <h3 class="kpi-title font-bold mb-4 text-[10px] uppercase tracking-wider">Submission Overview</h3>
                         <div class="w-full flex-grow min-h-[220px]"><canvas id="pieChart"></canvas></div>
                     </div>
@@ -150,7 +150,7 @@
             </div>
 
             <div id="annual-performance" class="page-content space-y-6">
-                <div class="flex justy-between items-end mb-4">
+                <div class="flex justify-between items-end mb-4">
                     <div>
                         <h2 class="text-2xl font-black text-white">Annual Performance Summary</h2>
                         <p class="text-gray-400 text-sm italic">"Commitment to deliver targets for 2026"</p>
@@ -188,7 +188,7 @@
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div class="dashboard-card p-6">
                         <h3 class="text-xs font-bold text-gray-400 uppercase mb-6">Budget Utilization Overview</h3>
-                        <div class="flex items-end justy-around h-40">
+                        <div class="flex items-end justify-around h-40">
                             <div class="flex flex-col items-center gap-2">
                                 <div class="bg-blue-600 w-12 h-[85%] rounded-t-sm"></div>
                                 <span class="text-[9px] text-gray-400 text-center uppercase font-bold">Obligation</span>
@@ -208,21 +208,21 @@
                         <h3 class="text-xs font-bold text-gray-400 uppercase">Service Efficiency Targets</h3>
                         <div class="space-y-4">
                             <div>
-                                <div class="flex justy-between text-[10px] mb-1">
+                                <div class="flex justify-between text-[10px] mb-1">
                                     <span class="text-gray-300">ER Turnaround (&lt;6 hrs)</span>
                                     <span class="text-emerald-400 font-bold">100.5%</span>
                                 </div>
                                 <div class="h-1.5 bg-[#30363d] rounded-full"><div class="w-full bg-emerald-500 h-full rounded-full"></div></div>
                             </div>
                             <div>
-                                <div class="flex justy-between text-[10px] mb-1">
+                                <div class="flex justify-between text-[10px] mb-1">
                                     <span class="text-gray-300">Discharge Process (&lt;6 hrs)</span>
                                     <span class="text-emerald-400 font-bold">103.6%</span>
                                 </div>
                                 <div class="h-1.5 bg-[#30363d] rounded-full"><div class="w-full bg-emerald-500 h-full rounded-full"></div></div>
                             </div>
                             <div>
-                                <div class="flex justy-between text-[10px] mb-1">
+                                <div class="flex justify-between text-[10px] mb-1">
                                     <span class="text-gray-300">Lab Result TAT (&lt;5 hrs)</span>
                                     <span class="text-emerald-400 font-bold">100.6%</span>
                                 </div>
@@ -249,31 +249,34 @@
         }
 
         // ORIGINAL JS LOGIC
-        try {
+        if (window.Chart && window.ChartDataLabels) {
             Chart.register(ChartDataLabels);
             Chart.defaults.color = '#8b949e';
-        } catch(e) { console.error(e); }
+        }
 
        const API_URL = 'https://script.google.com/macros/s/AKfycbwvEy5JPb9MVtWd3t6yK9jufyVFhDpz_2euzEDQjGHq6bcRvgkb57L6fqdsfMT1D5tTkA/exec';
         let rawData = [];
         let charts = {};
+        let loading = false;
 
        async function init() {
-
+    if (loading) return;
+    loading = true;
     try {
-
         const response = await fetch(API_URL + '?t=' + new Date().getTime());
-
+        if (!response.ok) throw new Error('API Error');
         rawData = await response.json();
-
         setupYearFilter(rawData);
-
         applyFilters();
-
     } catch(error) {
-
+        const s=document.getElementById('sync-status');
+        if(s){
+            s.innerText='Offline';
+            s.className='text-[10px] font-bold text-[#f85149]';
+        }
         console.error(error);
-
+    } finally {
+        loading = false;
     }
 }
 
@@ -282,7 +285,7 @@
     const yearSelect =
         document.getElementById('filter-year');
 
-    if (yearSelect.options.length > 0) return;
+    yearSelect.innerHTML = "";
 
     const years = [...new Set(
         data.map(r => (r.YEAR || "").trim())
@@ -312,7 +315,7 @@
                 return (r[dateKey] || "").trim() !== "";
             });
 
-             (periodKPIs.length > 0) {
+             if (periodKPIs.length > 0) {
                 updateDashboard(periodKPIs, validEncoded);
                 buildRanking(validEncoded);
                 document.getElementById('sync-status').innerText = 'Online';
@@ -328,8 +331,9 @@
             document.getElementById('stat-avg').innerText = '0.00%';
             document.getElementById('stat-comp').innerText = '0.00%';
             ['total', 'encoded', 'ontime', 'late', 'missing'].forEach(id => document.getElementById('stat-'+id).innerText = '0');
-            (charts.bar) charts.bar.destroy();
-            (charts.pie) charts.pie.destroy();
+            document.getElementById('ranking-body').innerHTML='';
+            if (charts.bar instanceof Chart) charts.bar.destroy();
+            if (charts.pie instanceof Chart) charts.pie.destroy();
         }
 
         function updateDashboard(allRows, encodedRows) {
@@ -339,11 +343,7 @@
             const late = encodedRows.filter(r => (r['WITHIN DEADLINE'] || "").trim() === 'Late').length;
             const missing = total - encodedCount; 
 
-            let totalRateSum = 0;
-            encodedRows.forEach(r => {
-                const rate = parseFloat((r['ACCOMPLISHMENT RATE'] || "0").replace('%', '')) || 0;
-                totalRateSum += rate;
-            });
+            
             
       let totalRate = 0;
 let totalKPI = 0;
@@ -360,9 +360,9 @@ allRows.forEach(r => {
             .replace('%','')
         ) || 0;
 
-        totalRate += rate;
+        totalRate += (rate * kpi);
 
-        totalKPI += 1;
+        totalKPI += kpi;
     }
 });
 
@@ -432,8 +432,9 @@ renderCharts(
         }
 
         function renderCharts(labels, dataValues, encoded, missing) {
-            if (charts.bar) charts.bar.destroy();
-            if (charts.pie) charts.pie.destroy();
+            document.getElementById('ranking-body').innerHTML='';
+            if (charts.bar instanceof Chart) charts.bar.destroy();
+            if (charts.pie instanceof Chart) charts.pie.destroy();
 
             const barColors = dataValues.map(v => parseFloat(v) < 80 ? '#f85149' : (parseFloat(v) < 100 ? '#d29922' : '#3fb950'));
 
